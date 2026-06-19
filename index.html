@@ -1144,6 +1144,10 @@ function renderProfile(){
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
         <b>Install PeakForm</b></div>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="color:var(--text-3)"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="setting" onclick="resetOnboarding()" style="cursor:pointer"><div class="sl">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M3 12a9 9 0 109-9 9.01 9.01 0 00-9 9" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M3 12V6M3 12H9" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <b>Redo onboarding</b></div>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="color:var(--text-3)"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
     </div>
     <p class="center muted" style="font-size:12px;margin-top:22px;font-family:'Geist Mono',monospace;letter-spacing:.08em">PEAKFORM · v1.0 · AI COACH</p>
   </div>`;
@@ -1327,8 +1331,11 @@ async function generateSession(){
   const done=state.plan.filter(p=>p.done).map(p=>p.name).join(', ')||'none yet';
   const todayP=state.plan.find(p=>p.today);
   const ids=Object.keys(EX).join(', ');
+  const od=state.onboarding||{};
+  const profileCtx=od.goal?`Goal: ${od.goal}. Level: ${od.level||'intermediate'}. Activities: ${(od.activities||[]).join(', ')}. Equipment: ${(od.equipment||[]).join(', ')}.`:'';
   const prompt=`Design today's guided workout for ${u.name}. Adapt intensity to recovery.
 Context — now ${u.current}kg, target ${u.target}kg; goals: weight loss, cardio endurance, strength, consistency.
+${profileCtx}
 This week completed: ${done}. Today on plan: ${todayP?todayP.name:'flexible'}.
 Recovery: sleep ${r.sleep||'unknown'}, energy ${r.energy||'unknown'}, soreness ${r.soreness||'unknown'}.
 If soreness is high or sleep poor, reduce volume and pick lower-impact work; if energy is high, push harder.
@@ -1861,11 +1868,1336 @@ async function shareCardNative(){
 }
 
 window.addEventListener('load',()=>{
+  // Check if onboarding has been completed
+  const od = loadOnboardingData();
+  if(od && od.completed) {
+    applyOnboardingToState(od);
+    renderHome();
+    const tab=new URLSearchParams(location.search).get('tab');
+    if(tab && ['home','activities','coach','profile'].includes(tab)) setTimeout(()=>go(tab),300);
+    setTimeout(()=>{$('#splash').classList.add('hide');},900);
+  } else {
+    setTimeout(()=>{$('#splash').classList.add('hide');},900);
+    setTimeout(()=>{ startOnboarding(); },1100);
+  }
+});
+</script>
+
+<!-- ============================================================
+     ONBOARDING OVERLAY
+     ============================================================ -->
+<div id="onboarding" style="display:none" aria-modal="true" role="dialog" aria-label="Setup PeakForm">
+  <!-- Progress bar -->
+  <div class="ob-progress-wrap">
+    <div class="ob-progress-bar" id="ob-progress-bar"></div>
+  </div>
+  <!-- Back button -->
+  <button class="ob-back" id="ob-back" onclick="obBack()" aria-label="Go back" style="display:none">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M5 12l7 7M5 12l7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </button>
+  <!-- Skip button -->
+  <button class="ob-skip" id="ob-skip" onclick="obSkip()" style="display:none">Skip</button>
+  <!-- Slides container -->
+  <div class="ob-slides" id="ob-slides"></div>
+  <!-- Bottom CTA -->
+  <div class="ob-footer">
+    <button class="ob-btn-primary" id="ob-next" onclick="obNext()">Continue</button>
+  </div>
+</div>
+
+<!-- Onboarding Generation Screen -->
+<div id="ob-generating" style="display:none">
+  <div class="ob-gen-orb"></div>
+  <div class="ob-gen-ring ob-gen-ring-1"></div>
+  <div class="ob-gen-ring ob-gen-ring-2"></div>
+  <div class="ob-gen-content">
+    <div class="ob-gen-icon">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none"><path d="M12 2L4 7v6c0 5 3.5 7.5 8 9 4.5-1.5 8-4 8-9V7l-8-5z" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 12l2 2 4-4" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <h2 class="ob-gen-title">Building your plan</h2>
+    <p class="ob-gen-sub" id="ob-gen-sub">Analysing your fitness profile…</p>
+    <div class="ob-gen-steps" id="ob-gen-steps"></div>
+  </div>
+</div>
+
+<!-- Onboarding Welcome Screen -->
+<div id="ob-welcome-screen" style="display:none">
+  <div class="ob-welcome-aura"></div>
+  <div class="ob-welcome-content">
+    <div class="ob-welcome-icon">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none"><path d="M12 2L4 7v6c0 5 3.5 7.5 8 9 4.5-1.5 8-4 8-9V7l-8-5z" stroke="#fff" stroke-width="2" stroke-linejoin="round"/><path d="M9 12l2 2 4-4" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <div class="ob-welcome-kicker">Your AI Coach is ready</div>
+    <h1 class="ob-welcome-name" id="ob-welcome-name">Welcome, Marco.</h1>
+    <p class="ob-welcome-tagline" id="ob-welcome-tagline">Your personalised plan is set. Let's get to work.</p>
+    <div class="ob-plan-preview" id="ob-plan-preview"></div>
+    <button class="ob-btn-primary ob-welcome-cta" onclick="enterApp()">Enter PeakForm</button>
+  </div>
+</div>
+
+<style>
+/* ============================== ONBOARDING ============================== */
+#onboarding {
+  position:fixed; inset:0; z-index:200;
+  background:var(--bg);
+  display:flex; flex-direction:column;
+  max-width:var(--maxw); margin:0 auto;
+  overflow:hidden;
+}
+#onboarding.ob-visible { display:flex; }
+
+/* Progress */
+.ob-progress-wrap {
+  position:absolute; top:0; left:0; right:0; z-index:5;
+  height:3px; background:rgba(255,255,255,.07);
+}
+.ob-progress-bar {
+  height:100%; border-radius:0 2px 2px 0;
+  background:linear-gradient(90deg,var(--accent),var(--accent-2));
+  transition:width .5s cubic-bezier(.22,.61,.36,1);
+  box-shadow:0 0 12px var(--accent);
+}
+
+/* Back / Skip */
+.ob-back {
+  position:absolute; top:calc(var(--safe-top) + 14px); left:18px; z-index:6;
+  width:40px; height:40px; border-radius:12px;
+  background:var(--glass-2); border:1px solid var(--hair);
+  backdrop-filter:var(--blur);
+  display:grid; place-items:center;
+  transition:opacity .3s, transform .2s;
+  color:var(--text-2);
+}
+.ob-back:active { transform:scale(.92); }
+.ob-skip {
+  position:absolute; top:calc(var(--safe-top) + 20px); right:20px; z-index:6;
+  font-size:14px; font-weight:500; color:var(--text-3);
+  padding:4px 0;
+  transition:color .2s;
+}
+.ob-skip:hover { color:var(--text-2); }
+
+/* Slides */
+.ob-slides {
+  flex:1; position:relative; overflow:hidden;
+}
+.ob-slide {
+  position:absolute; inset:0;
+  display:flex; flex-direction:column;
+  padding:calc(var(--safe-top) + 72px) 24px 0;
+  opacity:0; pointer-events:none;
+  transform:translateX(40px) scale(.98);
+  transition:all .45s cubic-bezier(.22,.61,.36,1);
+  overflow-y:auto;
+}
+.ob-slide.ob-active {
+  opacity:1; pointer-events:auto;
+  transform:none;
+}
+.ob-slide.ob-exit {
+  opacity:0; pointer-events:none;
+  transform:translateX(-40px) scale(.98);
+}
+
+/* Slide Header */
+.ob-eyebrow {
+  font-family:"Geist Mono",monospace;
+  font-size:11px; font-weight:500;
+  letter-spacing:.16em; text-transform:uppercase;
+  color:var(--accent); margin-bottom:14px;
+  display:flex; align-items:center; gap:8px;
+}
+.ob-eyebrow::before {
+  content:""; display:inline-block;
+  width:18px; height:2px; border-radius:1px;
+  background:var(--accent); flex-shrink:0;
+}
+.ob-slide-title {
+  font-size:32px; font-weight:600;
+  letter-spacing:-.04em; line-height:1.08;
+  margin-bottom:8px;
+}
+.ob-slide-sub {
+  font-size:15px; color:var(--text-2);
+  line-height:1.5; margin-bottom:32px;
+  max-width:320px;
+}
+
+/* Input fields */
+.ob-field { margin-bottom:18px; }
+.ob-field label {
+  display:block; font-size:12px; font-weight:500;
+  color:var(--text-3); letter-spacing:.06em;
+  text-transform:uppercase; margin-bottom:8px;
+}
+.ob-field input, .ob-field select {
+  width:100%; height:54px; padding:0 18px;
+  background:var(--glass-2); border:1px solid var(--hair-2);
+  border-radius:16px; font-size:16px; font-weight:500;
+  color:var(--text);
+  -webkit-backdrop-filter:var(--blur); backdrop-filter:var(--blur);
+  outline:none; transition:border-color .25s, box-shadow .25s;
+  -webkit-appearance:none; appearance:none;
+}
+.ob-field input:focus, .ob-field select:focus {
+  border-color:var(--accent);
+  box-shadow:0 0 0 3px rgba(59,130,246,.15);
+}
+.ob-field input::placeholder { color:var(--text-3); }
+.ob-row { display:flex; gap:12px; }
+.ob-row .ob-field { flex:1; }
+
+/* Unit toggle */
+.ob-unit-group {
+  display:flex; gap:6px; margin-bottom:18px;
+}
+.ob-unit-group button {
+  flex:1; height:38px; border-radius:10px;
+  border:1px solid var(--hair); background:var(--glass);
+  font-size:13px; font-weight:500; color:var(--text-2);
+  transition:all .2s;
+}
+.ob-unit-group button.on {
+  background:var(--accent-soft); border-color:var(--accent); color:var(--accent);
+}
+
+/* Choice chips (single/multi) */
+.ob-chips {
+  display:flex; flex-wrap:wrap; gap:10px;
+  margin-bottom:24px;
+}
+.ob-chip {
+  display:flex; align-items:center; gap:9px;
+  padding:11px 18px; border-radius:14px;
+  background:var(--glass-2); border:1px solid var(--hair);
+  font-size:14px; font-weight:500; color:var(--text-2);
+  cursor:pointer; transition:all .2s var(--ease);
+  -webkit-backdrop-filter:var(--blur); backdrop-filter:var(--blur);
+  user-select:none;
+}
+.ob-chip:active { transform:scale(.95); }
+.ob-chip.on {
+  background:var(--accent-soft); border-color:var(--accent); color:var(--accent);
+  box-shadow:0 0 0 1px rgba(59,130,246,.2);
+}
+.ob-chip .ob-chip-ico {
+  width:28px; height:28px; border-radius:8px;
+  background:var(--glass); display:grid; place-items:center;
+  flex-shrink:0;
+}
+.ob-chip.on .ob-chip-ico { background:rgba(59,130,246,.2); }
+
+/* Goal card (large selectable) */
+.ob-goal-cards { display:flex; flex-direction:column; gap:12px; margin-bottom:24px; }
+.ob-goal-card {
+  display:flex; align-items:center; gap:16px;
+  padding:18px 20px; border-radius:20px;
+  background:var(--glass); border:1.5px solid var(--hair);
+  cursor:pointer; transition:all .25s var(--ease);
+  -webkit-backdrop-filter:var(--blur); backdrop-filter:var(--blur);
+  position:relative; overflow:hidden;
+}
+.ob-goal-card:active { transform:scale(.98); }
+.ob-goal-card.on {
+  background:linear-gradient(135deg,rgba(59,130,246,.12),rgba(99,102,241,.07));
+  border-color:rgba(59,130,246,.45);
+}
+.ob-goal-card.on::after {
+  content:""; position:absolute; right:-20px; top:-20px;
+  width:100px; height:100px;
+  background:radial-gradient(circle,rgba(59,130,246,.2),transparent 70%);
+  pointer-events:none;
+}
+.ob-goal-icon {
+  width:48px; height:48px; border-radius:14px;
+  background:var(--glass-2); display:grid; place-items:center;
+  flex-shrink:0; font-size:22px;
+  transition:background .25s;
+}
+.ob-goal-card.on .ob-goal-icon { background:var(--accent-soft); }
+.ob-goal-info { flex:1; }
+.ob-goal-info b { font-size:15.5px; font-weight:600; display:block; }
+.ob-goal-info span { font-size:13px; color:var(--text-2); margin-top:2px; display:block; }
+.ob-goal-check {
+  width:24px; height:24px; border-radius:50%;
+  border:1.5px solid var(--hair-2); flex-shrink:0;
+  display:grid; place-items:center;
+  transition:all .2s; background:transparent;
+}
+.ob-goal-card.on .ob-goal-check {
+  background:var(--accent); border-color:var(--accent);
+}
+
+/* Level selector */
+.ob-levels { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:24px; }
+.ob-level {
+  aspect-ratio:.9; border-radius:18px;
+  background:var(--glass-2); border:1.5px solid var(--hair);
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:8px; cursor:pointer; transition:all .25s var(--ease);
+  padding:12px;
+}
+.ob-level:active { transform:scale(.96); }
+.ob-level.on {
+  background:var(--accent-soft); border-color:var(--accent);
+}
+.ob-level-icon { font-size:28px; line-height:1; }
+.ob-level-name { font-size:13px; font-weight:600; color:var(--text); }
+.ob-level-desc { font-size:11px; color:var(--text-3); text-align:center; line-height:1.3; }
+
+/* Frequency picker */
+.ob-freq-grid { display:flex; gap:8px; margin-bottom:24px; }
+.ob-freq-btn {
+  flex:1; height:60px; border-radius:16px;
+  background:var(--glass-2); border:1.5px solid var(--hair);
+  font-size:17px; font-weight:600; color:var(--text-2);
+  transition:all .25s var(--ease);
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:2px;
+}
+.ob-freq-btn small { font-size:10px; font-weight:500; color:var(--text-3); letter-spacing:.05em; font-family:"Geist Mono",monospace; text-transform:uppercase; }
+.ob-freq-btn.on { background:var(--accent-soft); border-color:var(--accent); color:var(--accent); }
+.ob-freq-btn.on small { color:var(--accent); opacity:.7; }
+
+/* Equipment grid */
+.ob-equip-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:24px; }
+.ob-equip {
+  padding:16px; border-radius:16px;
+  background:var(--glass-2); border:1.5px solid var(--hair);
+  display:flex; align-items:center; gap:12px;
+  cursor:pointer; transition:all .22s var(--ease);
+}
+.ob-equip:active { transform:scale(.96); }
+.ob-equip.on { background:var(--accent-soft); border-color:var(--accent); }
+.ob-equip-icon { font-size:22px; flex-shrink:0; }
+.ob-equip-name { font-size:13.5px; font-weight:500; color:var(--text-2); }
+.ob-equip.on .ob-equip-name { color:var(--accent); }
+
+/* Integration cards */
+.ob-integrations { display:flex; flex-direction:column; gap:12px; margin-bottom:24px; }
+.ob-integration {
+  display:flex; align-items:center; gap:14px;
+  padding:16px 18px; border-radius:18px;
+  background:var(--glass-2); border:1.5px solid var(--hair);
+  cursor:pointer; transition:all .22s var(--ease);
+  position:relative;
+}
+.ob-integration:active { transform:scale(.98); }
+.ob-integration.on { border-color:rgba(59,130,246,.4); background:rgba(59,130,246,.07); }
+.ob-integration-badge {
+  width:44px; height:44px; border-radius:12px;
+  display:grid; place-items:center; flex-shrink:0;
+  font-size:22px;
+}
+.ob-integration-info { flex:1; }
+.ob-integration-info b { font-size:15px; font-weight:600; display:block; }
+.ob-integration-info span { font-size:13px; color:var(--text-2); margin-top:2px; display:block; }
+.ob-integration-toggle {
+  width:44px; height:26px; border-radius:99px;
+  background:var(--hair-2); position:relative;
+  transition:background .3s; flex-shrink:0;
+}
+.ob-integration-toggle::after {
+  content:""; position:absolute;
+  width:20px; height:20px; border-radius:50%;
+  background:#fff; top:3px; left:3px;
+  transition:transform .3s var(--ease), box-shadow .2s;
+  box-shadow:0 2px 6px rgba(0,0,0,.3);
+}
+.ob-integration.on .ob-integration-toggle { background:var(--accent); }
+.ob-integration.on .ob-integration-toggle::after { transform:translateX(18px); }
+.ob-integration-soon {
+  position:absolute; top:10px; right:14px;
+  font-size:9px; font-weight:600; letter-spacing:.08em;
+  text-transform:uppercase; font-family:"Geist Mono",monospace;
+  color:var(--text-3); background:var(--glass-2);
+  padding:3px 7px; border-radius:99px; border:1px solid var(--hair);
+}
+
+/* Slider */
+.ob-slider-wrap { margin-bottom:24px; }
+.ob-slider-display {
+  font-size:42px; font-weight:300; letter-spacing:-.04em;
+  margin-bottom:16px; display:flex; align-items:baseline; gap:6px;
+}
+.ob-slider-display span { font-size:18px; color:var(--text-2); font-weight:400; }
+.ob-slider {
+  -webkit-appearance:none; appearance:none;
+  width:100%; height:6px; border-radius:3px;
+  background:var(--glass-2); outline:none;
+  transition:background .2s;
+}
+.ob-slider::-webkit-slider-thumb {
+  -webkit-appearance:none; appearance:none;
+  width:28px; height:28px; border-radius:50%;
+  background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  cursor:pointer; box-shadow:0 4px 14px -4px var(--accent);
+  transition:transform .2s;
+}
+.ob-slider::-webkit-slider-thumb:active { transform:scale(1.2); }
+.ob-slider-labels {
+  display:flex; justify-content:space-between;
+  font-size:11px; font-family:"Geist Mono",monospace;
+  letter-spacing:.06em; color:var(--text-3); margin-top:10px;
+  text-transform:uppercase;
+}
+
+/* Intro slide (step 0) */
+.ob-intro {
+  flex:1; display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  text-align:center; padding:0 8px 40px;
+}
+.ob-intro-logo {
+  width:88px; height:88px; border-radius:28px;
+  background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  display:grid; place-items:center;
+  margin:0 auto 32px;
+  box-shadow:0 20px 50px -20px var(--accent), 0 0 0 1px rgba(59,130,246,.2);
+  animation:obLogoIn .8s var(--ease) both;
+}
+@keyframes obLogoIn {
+  from { transform:scale(.5) rotate(-15deg); opacity:0; }
+  to { transform:none; opacity:1; }
+}
+.ob-intro-title {
+  font-size:36px; font-weight:700; letter-spacing:-.045em; line-height:1.05;
+  margin-bottom:14px;
+  animation:obTitleIn .8s var(--ease) .15s both;
+}
+@keyframes obTitleIn {
+  from { transform:translateY(20px); opacity:0; }
+  to { transform:none; opacity:1; }
+}
+.ob-intro-subtitle {
+  font-size:16px; color:var(--text-2); line-height:1.55; max-width:290px;
+  animation:obTitleIn .8s var(--ease) .28s both;
+}
+.ob-intro-features {
+  display:flex; gap:12px; margin-top:40px; flex-wrap:wrap; justify-content:center;
+  animation:obTitleIn .8s var(--ease) .42s both;
+}
+.ob-intro-feat {
+  display:flex; align-items:center; gap:7px;
+  font-size:13px; color:var(--text-2); font-weight:500;
+  background:var(--glass-2); border:1px solid var(--hair);
+  padding:7px 13px; border-radius:99px;
+  -webkit-backdrop-filter:var(--blur); backdrop-filter:var(--blur);
+}
+.ob-intro-feat-dot { width:6px; height:6px; border-radius:50%; background:var(--accent); flex-shrink:0; }
+
+/* Generating overlay */
+#ob-generating {
+  position:fixed; inset:0; z-index:210;
+  background:var(--bg);
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  max-width:var(--maxw); margin:0 auto;
+}
+.ob-gen-orb {
+  position:absolute; width:380px; height:380px;
+  border-radius:50%; top:50%; left:50%;
+  transform:translate(-50%,-52%);
+  background:radial-gradient(circle,rgba(59,130,246,.2) 0%,rgba(99,102,241,.08) 50%,transparent 70%);
+  animation:obGenPulse 3s ease-in-out infinite;
+}
+@keyframes obGenPulse {
+  0%,100% { transform:translate(-50%,-52%) scale(1); opacity:.7; }
+  50% { transform:translate(-50%,-52%) scale(1.18); opacity:1; }
+}
+.ob-gen-ring {
+  position:absolute; border-radius:50%; top:50%; left:50%;
+  border:1px solid rgba(59,130,246,.15);
+  animation:obGenRing 3s ease-in-out infinite;
+}
+.ob-gen-ring-1 { width:280px; height:280px; transform:translate(-50%,-50%); animation-delay:0s; }
+.ob-gen-ring-2 { width:380px; height:380px; transform:translate(-50%,-50%); animation-delay:.4s; }
+@keyframes obGenRing {
+  0% { transform:translate(-50%,-50%) scale(.9); opacity:0; }
+  50% { opacity:1; }
+  100% { transform:translate(-50%,-50%) scale(1.1); opacity:0; }
+}
+.ob-gen-content {
+  position:relative; z-index:2;
+  display:flex; flex-direction:column; align-items:center;
+  text-align:center; padding:0 28px;
+}
+.ob-gen-icon {
+  width:72px; height:72px; border-radius:22px;
+  background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  display:grid; place-items:center; margin-bottom:28px;
+  box-shadow:0 16px 40px -16px var(--accent);
+  animation:obLogoIn .6s var(--ease) both;
+}
+.ob-gen-title {
+  font-size:28px; font-weight:600; letter-spacing:-.03em;
+  margin-bottom:8px;
+  animation:obTitleIn .6s var(--ease) .1s both;
+}
+.ob-gen-sub {
+  font-size:15px; color:var(--text-2); margin-bottom:36px;
+  animation:obTitleIn .6s var(--ease) .2s both;
+  min-height:24px; transition:opacity .4s;
+}
+.ob-gen-steps {
+  display:flex; flex-direction:column; gap:10px; width:100%; max-width:280px;
+  animation:obTitleIn .6s var(--ease) .3s both;
+}
+.ob-gen-step {
+  display:flex; align-items:center; gap:12px;
+  padding:12px 16px; border-radius:14px;
+  background:var(--glass-2); border:1px solid var(--hair);
+  font-size:14px; font-weight:500; color:var(--text-3);
+  transition:all .5s var(--ease);
+  opacity:0; transform:translateY(8px);
+}
+.ob-gen-step.ob-step-active { opacity:1; transform:none; color:var(--text-2); }
+.ob-gen-step.ob-step-done { color:var(--success); border-color:rgba(16,185,129,.25); background:rgba(16,185,129,.06); opacity:1; transform:none; }
+.ob-gen-step-dot {
+  width:8px; height:8px; border-radius:50%; flex-shrink:0;
+  background:var(--text-3); transition:background .4s;
+}
+.ob-gen-step.ob-step-active .ob-gen-step-dot { background:var(--accent); animation:obDotPulse 1.4s ease-in-out infinite; }
+.ob-gen-step.ob-step-done .ob-gen-step-dot { background:var(--success); }
+@keyframes obDotPulse { 0%,100%{opacity:1}50%{opacity:.3} }
+
+/* Welcome screen */
+#ob-welcome-screen {
+  position:fixed; inset:0; z-index:210;
+  background:var(--bg);
+  display:flex; flex-direction:column; align-items:center; justify-content:flex-end;
+  max-width:var(--maxw); margin:0 auto;
+  overflow:hidden;
+}
+.ob-welcome-aura {
+  position:absolute; width:100%; height:60%;
+  top:0; left:0;
+  background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(59,130,246,.22),transparent);
+  pointer-events:none;
+}
+.ob-welcome-content {
+  position:relative; z-index:2;
+  display:flex; flex-direction:column; align-items:center;
+  text-align:center; padding:0 28px calc(var(--safe-bot) + 44px);
+  width:100%;
+  animation:obTitleIn .8s var(--ease) .2s both;
+}
+.ob-welcome-icon {
+  width:80px; height:80px; border-radius:25px;
+  background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  display:grid; place-items:center; margin-bottom:24px;
+  box-shadow:0 20px 50px -16px var(--accent);
+  animation:obLogoIn .8s var(--ease) both;
+}
+.ob-welcome-kicker {
+  font-family:"Geist Mono",monospace;
+  font-size:11px; letter-spacing:.18em; text-transform:uppercase;
+  color:var(--accent); margin-bottom:10px;
+}
+.ob-welcome-name {
+  font-size:38px; font-weight:700; letter-spacing:-.05em; line-height:1;
+  margin-bottom:10px;
+}
+.ob-welcome-tagline {
+  font-size:16px; color:var(--text-2); line-height:1.5; margin-bottom:28px;
+}
+.ob-plan-preview {
+  width:100%; background:var(--glass-2); border:1px solid var(--hair);
+  border-radius:20px; padding:18px; margin-bottom:28px;
+  -webkit-backdrop-filter:var(--blur); backdrop-filter:var(--blur);
+}
+.ob-plan-preview-title {
+  font-size:11px; font-family:"Geist Mono",monospace; letter-spacing:.12em;
+  text-transform:uppercase; color:var(--text-3); margin-bottom:14px; text-align:left;
+}
+.ob-plan-days { display:flex; gap:6px; justify-content:space-between; }
+.ob-plan-day-item {
+  flex:1; display:flex; flex-direction:column; align-items:center; gap:6px;
+}
+.ob-plan-day-label {
+  font-size:9px; font-family:"Geist Mono",monospace; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--text-3);
+}
+.ob-plan-day-dot {
+  width:32px; height:32px; border-radius:10px;
+  display:grid; place-items:center; font-size:14px;
+}
+.ob-plan-day-dot.ob-workout { background:linear-gradient(135deg,var(--accent),var(--accent-2)); }
+.ob-plan-day-dot.ob-rest { background:var(--glass-2); border:1px solid var(--hair); }
+.ob-welcome-cta {
+  width:100%; max-width:340px;
+  animation:obTitleIn .8s var(--ease) .5s both;
+}
+
+/* Footer */
+.ob-footer {
+  padding:16px 24px calc(var(--safe-bot) + 20px);
+  background:linear-gradient(0deg,var(--bg) 70%,transparent);
+  flex-shrink:0;
+}
+.ob-btn-primary {
+  width:100%; height:58px; border-radius:18px;
+  background:linear-gradient(120deg,var(--accent),var(--accent-2));
+  color:#fff; font-size:16px; font-weight:600;
+  border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px;
+  box-shadow:0 14px 36px -14px var(--accent);
+  transition:transform .25s var(--ease), opacity .25s, box-shadow .25s;
+}
+.ob-btn-primary:active { transform:scale(.97); opacity:.9; }
+.ob-btn-primary:disabled {
+  opacity:.45; cursor:not-allowed; box-shadow:none;
+}
+
+/* DOB special layout */
+.ob-dob-row { display:flex; gap:10px; }
+.ob-dob-row .ob-field { flex:1; }
+
+/* Scroll gradient for slides */
+.ob-slide::after {
+  content:""; position:fixed;
+  bottom:120px; left:0; right:0; height:60px;
+  background:linear-gradient(0deg,var(--bg),transparent);
+  pointer-events:none; z-index:1;
+  max-width:var(--maxw); margin:0 auto;
+}
+
+/* Measurement visual */
+.ob-measure-visual {
+  display:flex; align-items:center; gap:16px;
+  padding:18px; border-radius:18px;
+  background:var(--glass-2); border:1px solid var(--hair);
+  margin-bottom:20px;
+}
+.ob-measure-icon { font-size:32px; }
+.ob-measure-info { flex:1; }
+.ob-measure-info b { font-size:14px; font-weight:600; display:block; margin-bottom:2px; }
+.ob-measure-info span { font-size:12px; color:var(--text-3); }
+</style>
+
+<script>
+/* ============================================================
+   ONBOARDING ENGINE
+   ============================================================ */
+
+// ---- Persistence ----
+function saveOnboardingData(data) {
+  try { localStorage.setItem('pf_onboarding', JSON.stringify(data)); } catch(e){}
+}
+function loadOnboardingData() {
+  try { return JSON.parse(localStorage.getItem('pf_onboarding') || 'null'); } catch(e){ return null; }
+}
+function clearOnboarding() {
+  try { localStorage.removeItem('pf_onboarding'); } catch(e){}
+}
+
+// ---- Apply onboarding data to app state ----
+function applyOnboardingToState(od) {
+  if(!od) return;
+  state.user.name = od.firstName || state.user.name;
+  if(od.weightKg) { state.user.current = parseFloat(od.weightKg); state.user.start = parseFloat(od.weightKg); }
+  if(od.targetWeightKg) state.user.target = parseFloat(od.targetWeightKg);
+  if(od.heightCm) state.user.heightCm = parseFloat(od.heightCm);
+  // Store full onboarding profile on state for Coach context
+  state.onboarding = od;
+}
+
+// ---- Onboarding state ----
+let ob = {
+  step: 0,
+  data: {},
+  weightUnit: 'kg',
+  heightUnit: 'cm',
+};
+
+// ---- Step definitions ----
+const OB_STEPS = [
+  { id:'intro',       skip:false, back:false },
+  { id:'personal',    skip:false, back:true  },
+  { id:'measurements',skip:false, back:true  },
+  { id:'goal',        skip:false, back:true  },
+  { id:'activities',  skip:false, back:true  },
+  { id:'level',       skip:false, back:true  },
+  { id:'equipment',   skip:true,  back:true  },
+  { id:'frequency',   skip:false, back:true  },
+  { id:'integrations',skip:true,  back:true  },
+];
+
+function startOnboarding() {
+  ob.step = 0;
+  ob.data = {};
+  const obEl = $('#onboarding');
+  obEl.classList.add('ob-visible');
+  buildSlides();
+  showStep(0, 'enter');
+}
+
+function buildSlides() {
+  const container = $('#ob-slides');
+  container.innerHTML = '';
+  OB_STEPS.forEach((s, i) => {
+    const div = document.createElement('div');
+    div.className = 'ob-slide';
+    div.id = 'ob-slide-' + i;
+    div.innerHTML = renderSlideContent(s.id, i);
+    container.appendChild(div);
+  });
+  // Re-attach slider listeners
+  attachSliderListeners();
+}
+
+function renderSlideContent(id, idx) {
+  switch(id) {
+    case 'intro': return renderIntroSlide();
+    case 'personal': return renderPersonalSlide();
+    case 'measurements': return renderMeasurementsSlide();
+    case 'goal': return renderGoalSlide();
+    case 'activities': return renderActivitiesSlide();
+    case 'level': return renderLevelSlide();
+    case 'equipment': return renderEquipmentSlide();
+    case 'frequency': return renderFrequencySlide();
+    case 'integrations': return renderIntegrationsSlide();
+    default: return '';
+  }
+}
+
+// ---- Slide Renderers ----
+function renderIntroSlide() {
+  return `<div class="ob-intro">
+    <div class="ob-intro-logo">
+      <svg width="44" height="44" viewBox="0 0 24 24" fill="none">
+        <path d="M3 17L9 11L13 15L21 7" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M16 7H21V12" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <h1 class="ob-intro-title">Your AI coach,<br>personalised for you.</h1>
+    <p class="ob-intro-subtitle">Answer a few questions so Coach can build a plan that actually fits your life.</p>
+    <div class="ob-intro-features">
+      <div class="ob-intro-feat"><span class="ob-intro-feat-dot"></span>AI-generated plans</div>
+      <div class="ob-intro-feat"><span class="ob-intro-feat-dot"></span>Adapts every week</div>
+      <div class="ob-intro-feat"><span class="ob-intro-feat-dot"></span>Tracks your progress</div>
+    </div>
+  </div>`;
+}
+
+function renderPersonalSlide() {
+  return `<div>
+    <div class="ob-eyebrow">Step 1 · About you</div>
+    <h2 class="ob-slide-title">What should we<br>call you?</h2>
+    <p class="ob-slide-sub">Coach uses your name to make sessions feel personal.</p>
+    <div class="ob-row">
+      <div class="ob-field"><label>First name</label>
+        <input id="ob-fname" type="text" placeholder="e.g. Marco" autocapitalize="words" autocomplete="given-name" oninput="ob.data.firstName=this.value" value="${ob.data.firstName||''}"></div>
+      <div class="ob-field"><label>Age</label>
+        <input id="ob-age" type="number" placeholder="28" inputmode="numeric" min="13" max="99" oninput="ob.data.age=this.value" value="${ob.data.age||''}"></div>
+    </div>
+    <div class="ob-field"><label>Biological sex</label>
+      <select id="ob-sex" onchange="ob.data.sex=this.value">
+        <option value="" ${!ob.data.sex?'selected':''}>Select…</option>
+        <option value="male" ${ob.data.sex==='male'?'selected':''}>Male</option>
+        <option value="female" ${ob.data.sex==='female'?'selected':''}>Female</option>
+        <option value="other" ${ob.data.sex==='other'?'selected':''}>Prefer not to say</option>
+      </select>
+    </div>
+  </div>`;
+}
+
+function renderMeasurementsSlide() {
+  const wUnit = ob.weightUnit;
+  const hUnit = ob.heightUnit;
+  const wLabel = wUnit === 'kg' ? 'Weight (kg)' : 'Weight (lbs)';
+  const wPh = wUnit === 'kg' ? 'e.g. 75' : 'e.g. 165';
+  const hLabel = hUnit === 'cm' ? 'Height (cm)' : 'Height (ft)';
+  const hPh = hUnit === 'cm' ? 'e.g. 175' : 'e.g. 5\'11"';
+  return `<div>
+    <div class="ob-eyebrow">Step 2 · Your body</div>
+    <h2 class="ob-slide-title">Body<br>measurements</h2>
+    <p class="ob-slide-sub">Used to calculate calories burned and personalise intensity.</p>
+    <div class="ob-unit-group" id="ob-weight-units">
+      <button class="${wUnit==='kg'?'on':''}" onclick="setWeightUnit('kg')">kg</button>
+      <button class="${wUnit==='lbs'?'on':''}" onclick="setWeightUnit('lbs')">lbs</button>
+    </div>
+    <div class="ob-row">
+      <div class="ob-field"><label>${wLabel}</label>
+        <input id="ob-weight" type="number" placeholder="${wPh}" inputmode="decimal" oninput="ob.data.weight=this.value" value="${ob.data.weight||''}"></div>
+      <div class="ob-field"><label>Target ${wLabel.split(' ')[0]}</label>
+        <input id="ob-target" type="number" placeholder="${wUnit==='kg'?'e.g. 68':'e.g. 150'}" inputmode="decimal" oninput="ob.data.targetWeight=this.value" value="${ob.data.targetWeight||''}"></div>
+    </div>
+    <div class="ob-unit-group" id="ob-height-units">
+      <button class="${hUnit==='cm'?'on':''}" onclick="setHeightUnit('cm')">cm</button>
+      <button class="${hUnit==='ft'?'on':''}" onclick="setHeightUnit('ft')">ft / in</button>
+    </div>
+    <div class="ob-field"><label>${hLabel}</label>
+      <input id="ob-height" type="number" placeholder="${hPh}" inputmode="decimal" oninput="ob.data.height=this.value" value="${ob.data.height||''}"></div>
+  </div>`;
+}
+
+function renderGoalSlide() {
+  const goals = [
+    { id:'lose_weight', icon:'🏃', name:'Lose weight', desc:'Sustainable fat loss through cardio and strength' },
+    { id:'build_muscle', icon:'💪', name:'Build muscle', desc:'Progressive overload and hypertrophy training' },
+    { id:'endurance', icon:'🚴', name:'Improve endurance', desc:'Increase stamina for running, cycling or sport' },
+    { id:'stay_active', icon:'✨', name:'Stay active', desc:'Build a consistent healthy movement habit' },
+    { id:'sport_perf', icon:'🏅', name:'Sport performance', desc:'Train for a specific sport or event' },
+  ];
+  const sel = ob.data.goal || '';
+  return `<div>
+    <div class="ob-eyebrow">Step 3 · Your goal</div>
+    <h2 class="ob-slide-title">What's your<br>main goal?</h2>
+    <p class="ob-slide-sub">Coach will weight your plan around this objective.</p>
+    <div class="ob-goal-cards">
+      ${goals.map(g=>`
+        <div class="ob-goal-card ${sel===g.id?'on':''}" onclick="selectGoal('${g.id}',this)">
+          <div class="ob-goal-icon">${g.icon}</div>
+          <div class="ob-goal-info"><b>${g.name}</b><span>${g.desc}</span></div>
+          <div class="ob-goal-check">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+        </div>`).join('')}
+    </div>
+  </div>`;
+}
+
+function renderActivitiesSlide() {
+  const acts = [
+    { id:'running', icon:'🏃', label:'Running' },
+    { id:'cycling', icon:'🚴', label:'Cycling' },
+    { id:'gym', icon:'🏋️', label:'Weight training' },
+    { id:'yoga', icon:'🧘', label:'Yoga / Pilates' },
+    { id:'swimming', icon:'🏊', label:'Swimming' },
+    { id:'walking', icon:'🚶', label:'Walking / Hiking' },
+    { id:'sports', icon:'⚽', label:'Team sports' },
+    { id:'hiit', icon:'⚡', label:'HIIT' },
+  ];
+  const sel = ob.data.activities || [];
+  return `<div>
+    <div class="ob-eyebrow">Step 4 · What you enjoy</div>
+    <h2 class="ob-slide-title">Preferred<br>activities</h2>
+    <p class="ob-slide-sub">Choose all that apply. Coach mixes these into your weekly plan.</p>
+    <div class="ob-chips">
+      ${acts.map(a=>`
+        <div class="ob-chip ${sel.includes(a.id)?'on':''}" onclick="toggleActivity('${a.id}',this)">
+          <span class="ob-chip-ico">${a.icon}</span>${a.label}
+        </div>`).join('')}
+    </div>
+  </div>`;
+}
+
+function renderLevelSlide() {
+  const levels = [
+    { id:'beginner', icon:'🌱', name:'Beginner', desc:'New to regular exercise' },
+    { id:'intermediate', icon:'🔥', name:'Intermediate', desc:'Training 1–3 years' },
+    { id:'advanced', icon:'⚡', name:'Advanced', desc:'4+ years, competitive' },
+  ];
+  const sel = ob.data.level || '';
+  return `<div>
+    <div class="ob-eyebrow">Step 5 · Your level</div>
+    <h2 class="ob-slide-title">Current fitness<br>level</h2>
+    <p class="ob-slide-sub">Be honest — Coach calibrates intensity and volume to this.</p>
+    <div class="ob-levels">
+      ${levels.map(l=>`
+        <div class="ob-level ${sel===l.id?'on':''}" onclick="selectLevel('${l.id}',this)">
+          <div class="ob-level-icon">${l.icon}</div>
+          <div class="ob-level-name">${l.name}</div>
+          <div class="ob-level-desc">${l.desc}</div>
+        </div>`).join('')}
+    </div>
+    <div class="ob-measure-visual">
+      <span class="ob-measure-icon">📊</span>
+      <div class="ob-measure-info"><b>VO2 Max estimation</b><span>Coach estimates this from your level and improves over time.</span></div>
+    </div>
+  </div>`;
+}
+
+function renderEquipmentSlide() {
+  const equips = [
+    { id:'barbell', icon:'🏋️', name:'Barbell & plates' },
+    { id:'dumbbells', icon:'💪', name:'Dumbbells' },
+    { id:'cables', icon:'🔗', name:'Cable machine' },
+    { id:'pullup', icon:'⬆️', name:'Pull-up bar' },
+    { id:'bands', icon:'🪢', name:'Resistance bands' },
+    { id:'cardio', icon:'🏃', name:'Cardio machines' },
+    { id:'kettlebell', icon:'⚾', name:'Kettlebells' },
+    { id:'none', icon:'🏠', name:'Bodyweight only' },
+  ];
+  const sel = ob.data.equipment || [];
+  return `<div>
+    <div class="ob-eyebrow">Step 6 · Equipment</div>
+    <h2 class="ob-slide-title">What do you<br>have access to?</h2>
+    <p class="ob-slide-sub">Coach won't program exercises you can't do.</p>
+    <div class="ob-equip-grid">
+      ${equips.map(e=>`
+        <div class="ob-equip ${sel.includes(e.id)?'on':''}" onclick="toggleEquip('${e.id}',this)">
+          <span class="ob-equip-icon">${e.icon}</span>
+          <span class="ob-equip-name">${e.name}</span>
+        </div>`).join('')}
+    </div>
+  </div>`;
+}
+
+function renderFrequencySlide() {
+  const sel = ob.data.frequency || 4;
+  const opts = [2,3,4,5,6];
+  const labels = {2:'Light',3:'Moderate',4:'Active',5:'Dedicated',6:'Intense'};
+  return `<div>
+    <div class="ob-eyebrow">Step 7 · Schedule</div>
+    <h2 class="ob-slide-title">Workout days<br>per week</h2>
+    <p class="ob-slide-sub">Coach balances training and recovery around this number.</p>
+    <div class="ob-freq-grid">
+      ${opts.map(n=>`
+        <button class="ob-freq-btn ${sel===n?'on':''}" onclick="selectFreq(${n},this)">
+          ${n}<small>${labels[n]}</small>
+        </button>`).join('')}
+    </div>
+    <div class="ob-measure-visual">
+      <span class="ob-measure-icon">😴</span>
+      <div class="ob-measure-info"><b>Recovery days included</b><span>Rest and active recovery sessions are automatically woven in.</span></div>
+    </div>
+  </div>`;
+}
+
+function renderIntegrationsSlide() {
+  const integrations = [
+    { id:'strava', icon:'🟠', name:'Strava', desc:'Import runs, rides and swims automatically', soon:false },
+    { id:'garmin', icon:'⌚', name:'Garmin Connect', desc:'Sync workouts, heart rate and sleep data', soon:false },
+    { id:'apple_health', icon:'❤️', name:'Apple Health', desc:'Steps, heart rate, sleep from your iPhone', soon:true },
+    { id:'google_fit', icon:'🟢', name:'Google Fit', desc:'Activity and wellness metrics from Android', soon:true },
+  ];
+  const sel = ob.data.integrations || [];
+  return `<div>
+    <div class="ob-eyebrow">Step 8 · Integrations</div>
+    <h2 class="ob-slide-title">Connect your<br>devices</h2>
+    <p class="ob-slide-sub">Coach learns from your real data to improve over time. You can change this later.</p>
+    <div class="ob-integrations">
+      ${integrations.map(i=>`
+        <div class="ob-integration ${sel.includes(i.id)?'on':''} ${i.soon?'ob-int-soon':''}" onclick="${i.soon?'':'toggleIntegration(\''+i.id+'\',this)'}">
+          <div class="ob-integration-badge" style="background:var(--glass-2)">${i.icon}</div>
+          <div class="ob-integration-info"><b>${i.name}</b><span>${i.desc}</span></div>
+          ${i.soon
+            ? `<span class="ob-integration-soon">Soon</span>`
+            : `<div class="ob-integration-toggle"></div>`
+          }
+        </div>`).join('')}
+    </div>
+  </div>`;
+}
+
+// ---- Step navigation ----
+function showStep(idx, dir='enter') {
+  const steps = document.querySelectorAll('.ob-slide');
+  steps.forEach((s, i) => {
+    s.classList.remove('ob-active','ob-exit');
+    if(i === idx) s.classList.add('ob-active');
+  });
+
+  const step = OB_STEPS[idx];
+  const backBtn = $('#ob-back');
+  const skipBtn = $('#ob-skip');
+  const footer = $('.ob-footer');
+  const nextBtn = $('#ob-next');
+
+  // Back button
+  if(backBtn) backBtn.style.display = (step.back && idx > 0) ? 'grid' : 'none';
+  // Skip button
+  if(skipBtn) skipBtn.style.display = step.skip ? 'block' : 'none';
+
+  // Progress
+  const pct = idx === 0 ? 0 : Math.round(((idx) / (OB_STEPS.length - 1)) * 100);
+  const bar = $('#ob-progress-bar');
+  if(bar) bar.style.width = pct + '%';
+
+  // Button text
+  if(nextBtn) {
+    if(idx === 0) nextBtn.innerHTML = `Let's begin <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+    else if(idx === OB_STEPS.length - 1) nextBtn.innerHTML = `Build my plan <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 2L4 7v6c0 5 3.5 7.5 8 9 4.5-1.5 8-4 8-9V7l-8-5z" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/></svg>`;
+    else nextBtn.innerHTML = `Continue <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  }
+
+  haptic();
+  ob.step = idx;
+
+  // Scroll to top
+  const activeSlide = document.getElementById('ob-slide-' + idx);
+  if(activeSlide) activeSlide.scrollTop = 0;
+}
+
+function obNext() {
+  if(!validateStep(ob.step)) return;
+  collectStep(ob.step);
+
+  if(ob.step >= OB_STEPS.length - 1) {
+    finishOnboarding();
+    return;
+  }
+  // Animate current out
+  const curr = document.getElementById('ob-slide-' + ob.step);
+  if(curr) { curr.classList.remove('ob-active'); curr.classList.add('ob-exit'); }
+  setTimeout(() => { if(curr) curr.classList.remove('ob-exit'); }, 460);
+
+  showStep(ob.step + 1, 'enter');
+}
+
+function obBack() {
+  if(ob.step <= 0) return;
+  collectStep(ob.step);
+  const curr = document.getElementById('ob-slide-' + ob.step);
+  if(curr) curr.classList.remove('ob-active');
+  showStep(ob.step - 1, 'back');
+  haptic();
+}
+
+function obSkip() {
+  collectStep(ob.step);
+  const curr = document.getElementById('ob-slide-' + ob.step);
+  if(curr) { curr.classList.remove('ob-active'); curr.classList.add('ob-exit'); }
+  setTimeout(() => { if(curr) curr.classList.remove('ob-exit'); }, 460);
+  if(ob.step >= OB_STEPS.length - 1) { finishOnboarding(); return; }
+  showStep(ob.step + 1, 'enter');
+  haptic();
+}
+
+// ---- Collect current step data ----
+function collectStep(idx) {
+  const id = OB_STEPS[idx].id;
+  if(id === 'personal') {
+    ob.data.firstName = ($('#ob-fname') ? $('#ob-fname').value.trim() : ob.data.firstName);
+    ob.data.age = ($('#ob-age') ? $('#ob-age').value : ob.data.age);
+    ob.data.sex = ($('#ob-sex') ? $('#ob-sex').value : ob.data.sex);
+  }
+  if(id === 'measurements') {
+    ob.data.weight = ($('#ob-weight') ? $('#ob-weight').value : ob.data.weight);
+    ob.data.targetWeight = ($('#ob-target') ? $('#ob-target').value : ob.data.targetWeight);
+    ob.data.height = ($('#ob-height') ? $('#ob-height').value : ob.data.height);
+    // Normalise to metric
+    const w = parseFloat(ob.data.weight);
+    const tw = parseFloat(ob.data.targetWeight);
+    const h = parseFloat(ob.data.height);
+    ob.data.weightKg = ob.weightUnit === 'lbs' ? (w * 0.453592).toFixed(1) : (w||0).toFixed(1);
+    ob.data.targetWeightKg = ob.weightUnit === 'lbs' ? (tw * 0.453592).toFixed(1) : (tw||0).toFixed(1);
+    ob.data.heightCm = ob.heightUnit === 'ft' ? (h * 30.48).toFixed(0) : (h||0);
+  }
+}
+
+// ---- Validate step before advancing ----
+function validateStep(idx) {
+  const id = OB_STEPS[idx].id;
+  if(id === 'intro') return true;
+  if(id === 'personal') {
+    const name = $('#ob-fname') ? $('#ob-fname').value.trim() : ob.data.firstName;
+    if(!name) { pulseField('ob-fname'); return false; }
+    return true;
+  }
+  if(id === 'goal') {
+    if(!ob.data.goal) { pulseFields(); return false; }
+    return true;
+  }
+  if(id === 'level') {
+    if(!ob.data.level) { pulseFields(); return false; }
+    return true;
+  }
+  if(id === 'activities') {
+    if(!ob.data.activities || !ob.data.activities.length) { pulseFields(); return false; }
+    return true;
+  }
+  return true;
+}
+
+function pulseField(id) {
+  const el = $('#' + id); if(!el) return;
+  el.style.borderColor = 'var(--error)';
+  el.style.boxShadow = '0 0 0 3px rgba(239,68,68,.2)';
+  el.focus();
+  setTimeout(() => { el.style.borderColor=''; el.style.boxShadow=''; }, 1800);
+}
+function pulseFields() {
+  const slide = document.getElementById('ob-slide-' + ob.step);
+  if(!slide) return;
+  slide.style.animation = 'obShake .4s ease';
+  setTimeout(() => { slide.style.animation = ''; }, 400);
+}
+
+// ---- Interaction handlers ----
+function selectGoal(id, el) {
+  haptic();
+  ob.data.goal = id;
+  document.querySelectorAll('.ob-goal-card').forEach(c => c.classList.remove('on'));
+  el.classList.add('on');
+}
+
+function toggleActivity(id, el) {
+  haptic();
+  if(!ob.data.activities) ob.data.activities = [];
+  const idx = ob.data.activities.indexOf(id);
+  if(idx === -1) ob.data.activities.push(id);
+  else ob.data.activities.splice(idx, 1);
+  el.classList.toggle('on', ob.data.activities.includes(id));
+}
+
+function selectLevel(id, el) {
+  haptic();
+  ob.data.level = id;
+  document.querySelectorAll('.ob-level').forEach(l => l.classList.remove('on'));
+  el.classList.add('on');
+}
+
+function toggleEquip(id, el) {
+  haptic();
+  if(!ob.data.equipment) ob.data.equipment = [];
+  if(id === 'none') {
+    ob.data.equipment = ['none'];
+    document.querySelectorAll('.ob-equip').forEach(e => e.classList.remove('on'));
+    el.classList.add('on');
+    return;
+  }
+  const noneEl = document.querySelector('.ob-equip[onclick*="none"]');
+  if(noneEl) noneEl.classList.remove('on');
+  ob.data.equipment = ob.data.equipment.filter(e => e !== 'none');
+  const idx = ob.data.equipment.indexOf(id);
+  if(idx === -1) ob.data.equipment.push(id);
+  else ob.data.equipment.splice(idx, 1);
+  el.classList.toggle('on', ob.data.equipment.includes(id));
+}
+
+function selectFreq(n, el) {
+  haptic();
+  ob.data.frequency = n;
+  document.querySelectorAll('.ob-freq-btn').forEach(b => b.classList.remove('on'));
+  el.classList.add('on');
+}
+
+function toggleIntegration(id, el) {
+  haptic();
+  if(!ob.data.integrations) ob.data.integrations = [];
+  const idx = ob.data.integrations.indexOf(id);
+  if(idx === -1) ob.data.integrations.push(id);
+  else ob.data.integrations.splice(idx, 1);
+  el.classList.toggle('on', ob.data.integrations.includes(id));
+}
+
+function setWeightUnit(u) {
+  ob.weightUnit = u;
+  document.querySelectorAll('#ob-weight-units button').forEach((b,i) => b.classList.toggle('on', (i===0&&u==='kg')||(i===1&&u==='lbs')));
+  const wInp = $('#ob-weight'); if(wInp) wInp.placeholder = u==='kg'?'e.g. 75':'e.g. 165';
+  const tInp = $('#ob-target'); if(tInp) tInp.placeholder = u==='kg'?'e.g. 68':'e.g. 150';
+  const lbl1 = document.querySelector('#ob-slide-2 .ob-row .ob-field:first-child label');
+  const lbl2 = document.querySelector('#ob-slide-2 .ob-row .ob-field:last-child label');
+  if(lbl1) lbl1.textContent = u==='kg'?'Weight (kg)':'Weight (lbs)';
+  if(lbl2) lbl2.textContent = u==='kg'?'Target weight (kg)':'Target weight (lbs)';
+}
+
+function setHeightUnit(u) {
+  ob.heightUnit = u;
+  document.querySelectorAll('#ob-height-units button').forEach((b,i) => b.classList.toggle('on', (i===0&&u==='cm')||(i===1&&u==='ft')));
+  const hInp = $('#ob-height'); if(hInp) { hInp.placeholder = u==='cm'?'e.g. 175':"e.g. 5.11"; }
+  const lbl = document.querySelector('#ob-slide-2 .ob-field:last-child label');
+  if(lbl) lbl.textContent = u==='cm'?'Height (cm)':'Height (ft decimal)';
+}
+
+function attachSliderListeners() {
+  // nothing needed currently — sliders handled inline
+}
+
+// ---- Shake animation ----
+const shakeSS = document.createElement('style');
+shakeSS.textContent = `@keyframes obShake{0%,100%{transform:none}20%{transform:translateX(-8px)}40%{transform:translateX(7px)}60%{transform:translateX(-5px)}80%{transform:translateX(4px)}}`;
+document.head.appendChild(shakeSS);
+
+// ---- Finish / Generate ----
+async function finishOnboarding() {
+  collectStep(ob.step);
+
+  // Set defaults for skipped steps
+  if(!ob.data.frequency) ob.data.frequency = 4;
+  if(!ob.data.equipment) ob.data.equipment = [];
+  if(!ob.data.integrations) ob.data.integrations = [];
+  if(!ob.data.activities || !ob.data.activities.length) ob.data.activities = ['running', 'gym'];
+
+  // Apply to state
+  applyOnboardingToState(ob.data);
+
+  // Show generating screen
+  $('#onboarding').style.display = 'none';
+  const genEl = $('#ob-generating');
+  genEl.style.display = 'flex';
+
+  const steps = [
+    'Analysing your fitness profile…',
+    'Setting intensity and volume…',
+    'Building your 7-day plan…',
+    'Personalising exercise selection…',
+    'Finalising recovery schedule…',
+  ];
+
+  const stepsEl = $('#ob-gen-steps');
+  stepsEl.innerHTML = steps.map((s,i)=>`
+    <div class="ob-gen-step" id="ob-gs-${i}">
+      <div class="ob-gen-step-dot"></div>${s}
+    </div>`).join('');
+
+  // Animate steps
+  let plan = null;
+  const animateSteps = async () => {
+    for(let i=0; i<steps.length; i++) {
+      await new Promise(r=>setTimeout(r, i===0?300:700));
+      const el = $('#ob-gs-'+i);
+      if(el) el.classList.add('ob-step-active');
+      const sub = $('#ob-gen-sub');
+      if(sub) { sub.style.opacity='0'; setTimeout(()=>{ sub.textContent=steps[i]; sub.style.opacity='1'; },200); }
+      if(i>0) {
+        const prev = $('#ob-gs-'+(i-1));
+        if(prev) { prev.classList.remove('ob-step-active'); prev.classList.add('ob-step-done'); }
+      }
+    }
+    await new Promise(r=>setTimeout(r, 700));
+    const last = $('#ob-gs-'+(steps.length-1));
+    if(last) { last.classList.remove('ob-step-active'); last.classList.add('ob-step-done'); }
+  };
+
+  // Generate plan with AI concurrently
+  const [, generatedPlan] = await Promise.all([
+    animateSteps(),
+    generatePlanWithAI(ob.data),
+  ]);
+
+  plan = generatedPlan;
+
+  // Store onboarding data with plan
+  ob.data.plan = plan;
+  ob.data.completed = true;
+  ob.data.completedAt = new Date().toISOString();
+  saveOnboardingData(ob.data);
+
+  // Apply generated plan to state
+  if(plan && plan.weeklyPlan) {
+    state.plan = plan.weeklyPlan;
+  }
+  if(plan && plan.todayFocus) {
+    state.todayFocus = plan.todayFocus;
+  }
+
+  // Small delay then show welcome
+  await new Promise(r=>setTimeout(r, 600));
+  genEl.style.display = 'none';
+  showWelcomeScreen(ob.data, plan);
+}
+
+// ---- AI Plan Generation ----
+async function generatePlanWithAI(profile) {
+  const prompt = `You are a professional fitness coach. Generate a personalised 7-day workout plan for this user.
+
+Profile:
+- Name: ${profile.firstName || 'the user'}
+- Age: ${profile.age || 'unknown'}
+- Sex: ${profile.sex || 'unknown'}
+- Weight: ${profile.weightKg || '?'} kg, Target: ${profile.targetWeightKg || '?'} kg
+- Height: ${profile.heightCm || '?'} cm
+- Primary goal: ${profile.goal || 'stay_active'}
+- Fitness level: ${profile.level || 'intermediate'}
+- Preferred activities: ${(profile.activities||[]).join(', ')||'general fitness'}
+- Equipment: ${(profile.equipment||[]).join(', ')||'bodyweight'}
+- Workout days per week: ${profile.frequency || 4}
+
+Respond with ONLY valid JSON (no markdown, no backticks) in this exact format:
+{
+  "weeklyPlan": [
+    {"day":"Mon","name":"5km Easy Run","type":"Run","done":false,"today":false},
+    {"day":"Tue","name":"Upper Body","type":"Upper Body","done":false,"today":false},
+    {"day":"Wed","name":"Rest","type":"Recovery","done":false,"today":false},
+    {"day":"Thu","name":"Cycling","type":"Cycling","done":false,"today":true},
+    {"day":"Fri","name":"Lower Body","type":"Lower Body","done":false,"today":false},
+    {"day":"Sat","name":"Long Run","type":"Long Run","done":false,"today":false},
+    {"day":"Sun","name":"Active Recovery","type":"Recovery","done":false,"today":false}
+  ],
+  "todayFocus": {
+    "title": "Lower Body Strength",
+    "meta": ["~45 min","3-4 sets","Moderate weight"]
+  },
+  "coachNote": "One encouraging sentence about their plan (max 20 words)",
+  "weeklyVolume": "e.g. 4 workouts · ~180 min",
+  "planName": "e.g. Fat Loss Kickstart"
+}
+
+Use only these types for the weeklyPlan type field: Run, Cycling, Walking, Gym, Upper Body, Lower Body, Hike, Long Run, Recovery, Rest.
+Distribute workout days correctly based on frequency: ${profile.frequency || 4} days active, rest on remaining days.`;
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json' },
+      body: JSON.stringify({
+        model:'claude-sonnet-4-6',
+        max_tokens:1000,
+        messages:[{ role:'user', content:prompt }]
+      })
+    });
+    const data = await response.json();
+    const text = data.content?.[0]?.text || '';
+    const clean = text.replace(/```json|```/g,'').trim();
+    return JSON.parse(clean);
+  } catch(e) {
+    // Fallback plan
+    return {
+      weeklyPlan:[
+        {day:'Mon',name:'Easy Run',type:'Run',done:false,today:false},
+        {day:'Tue',name:'Upper Body',type:'Upper Body',done:false,today:false},
+        {day:'Wed',name:'Rest',type:'Recovery',done:false,today:false},
+        {day:'Thu',name:'Lower Body',type:'Lower Body',done:false,today:true},
+        {day:'Fri',name:'Cycling',type:'Cycling',done:false,today:false},
+        {day:'Sat',name:'Long Run',type:'Long Run',done:false,today:false},
+        {day:'Sun',name:'Active Recovery',type:'Recovery',done:false,today:false},
+      ],
+      todayFocus:{ title:'Lower Body Strength', meta:['~45 min','3–4 sets','Moderate weight'] },
+      coachNote:`Ready to help you reach your goals, ${profile.firstName||'you'}. Let's build something great.`,
+      weeklyVolume:'4 workouts · ~180 min',
+      planName:'Your Starter Plan'
+    };
+  }
+}
+
+// ---- Welcome Screen ----
+function showWelcomeScreen(profile, plan) {
+  const ws = $('#ob-welcome-screen');
+  ws.style.display = 'flex';
+  ws.style.animation = 'obTitleIn .6s var(--ease) both';
+
+  const nameEl = $('#ob-welcome-name');
+  if(nameEl) nameEl.textContent = `Welcome, ${profile.firstName||'Athlete'}.`;
+
+  const taglineEl = $('#ob-welcome-tagline');
+  if(taglineEl) taglineEl.textContent = plan?.coachNote || 'Your personalised plan is ready. Let\'s get to work.';
+
+  // Build plan preview
+  const preview = $('#ob-plan-preview');
+  if(preview && plan?.weeklyPlan) {
+    const ACT_EMOJI = {Run:'🏃',Cycling:'🚴',Walking:'🚶','Upper Body':'💪','Lower Body':'🦵',Gym:'🏋️',Hike:'🥾','Long Run':'🏃',Recovery:'😴',Rest:'😴'};
+    preview.innerHTML = `
+      <div class="ob-plan-preview-title">${plan.planName || 'Your first week'}</div>
+      <div class="ob-plan-days">
+        ${plan.weeklyPlan.map(d => `
+          <div class="ob-plan-day-item">
+            <div class="ob-plan-day-label">${d.day[0]}</div>
+            <div class="ob-plan-day-dot ${d.type==='Recovery'||d.type==='Rest'?'ob-rest':'ob-workout'}">${ACT_EMOJI[d.type]||'💪'}</div>
+          </div>`).join('')}
+      </div>
+    `;
+  }
+}
+
+function enterApp() {
+  haptic();
+  const ws = $('#ob-welcome-screen');
+  if(ws) { ws.style.opacity='0'; ws.style.transition='opacity .4s'; setTimeout(()=>ws.style.display='none',400); }
+
+  // Init app
   renderHome();
   const tab=new URLSearchParams(location.search).get('tab');
   if(tab && ['home','activities','coach','profile'].includes(tab)) setTimeout(()=>go(tab),300);
-  setTimeout(()=>{$('#splash').classList.add('hide');},900);
-});
+  setTimeout(()=>{ $('#splash').classList.add('hide'); },100);
+}
+
+// ---- Reset (for dev/testing — accessible from profile) ----
+function resetOnboarding() {
+  clearOnboarding();
+  location.reload();
+}
 </script>
 </body>
 </html>
