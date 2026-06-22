@@ -1,13 +1,9 @@
 <!--
-  HYBRID COACH AI — single-file PWA  v2.0
+  HYBRID COACH AI — single-file PWA
   Design system: "Hybrid" — dual-domain identity (Strength = ember, Endurance = teal)
   on a near-black glass surface. Signature: the Hybrid Ring + WHOOP-style recovery gauge.
   Coach Felix is wired to the live Anthropic API (claude-sonnet-4-6).
-  ExerciseDB integration via RapidAPI — exercise library, GIF demos, AI coaching tips.
   Self-contained, no external deps, DirectAdmin-deployable.
-
-  API KEYS (set via RAPIDAPI_KEY env var — never hardcode in production):
-  RapidAPI Key: stored in window.__RAPIDAPI_KEY (injected server-side or set below)
 -->
 <!DOCTYPE html>
 <html lang="en">
@@ -262,60 +258,7 @@ hr.hair{border:none;border-top:1px solid var(--hair);margin:16px 0}
 .wm-rest{position:absolute;inset:0;z-index:8;background:rgba(7,8,10,.97);backdrop-filter:blur(14px);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;opacity:0;pointer-events:none;transition:opacity .3s}
 .wm-rest.open{opacity:1;pointer-events:auto}
 code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;background:var(--glass-2);padding:1px 5px;border-radius:5px}
-
-/* ===== EXERCISE LIBRARY (ExerciseDB) ===== */
-.lib-search{display:flex;align-items:center;gap:10px;background:var(--glass);border:1px solid var(--hair);border-radius:16px;padding:12px 16px;margin-bottom:14px}
-.lib-search svg{flex:none;color:var(--muted);width:18px;height:18px}
-.lib-search input{flex:1;background:none;border:none;color:var(--txt);font-family:inherit;font-size:15px;outline:none}
-.lib-search input::placeholder{color:var(--muted-2)}
-.filter-row{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-bottom:14px}
-.filter-row::-webkit-scrollbar{display:none}
-.filter-chip{flex:none;padding:7px 14px;border-radius:999px;font-size:12px;font-weight:680;background:var(--glass);border:1px solid var(--hair);color:var(--muted);transition:.15s;cursor:pointer;white-space:nowrap}
-.filter-chip.active{background:linear-gradient(120deg,var(--ember),var(--ember-2));border-color:transparent;color:#1a0a05}
-.filter-chip.teal-active{background:linear-gradient(120deg,var(--teal),var(--teal-2));border-color:transparent;color:#022}
-.ex-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.ex-card{border-radius:18px;overflow:hidden;background:var(--glass);border:1px solid var(--hair);cursor:pointer;transition:transform .12s,border-color .2s;position:relative}
-.ex-card:active{transform:scale(.97)}
-.ex-card.favorited{border-color:rgba(255,90,54,.4)}
-.ex-card-gif{width:100%;aspect-ratio:1;object-fit:cover;background:#0c0e12;display:block}
-.ex-card-gif-placeholder{width:100%;aspect-ratio:1;background:linear-gradient(135deg,#14171d,#0c0e12);display:flex;align-items:center;justify-content:center;font-size:36px}
-.ex-card-body{padding:10px 11px 12px}
-.ex-card-name{font-size:13px;font-weight:750;line-height:1.3;margin-bottom:3px}
-.ex-card-muscle{font-size:11px;color:var(--muted);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ex-card-fav{position:absolute;top:8px;right:8px;width:28px;height:28px;border-radius:50%;background:rgba(7,8,10,.72);display:grid;place-items:center;backdrop-filter:blur(8px);border:none;cursor:pointer;transition:.15s}
-.ex-card-fav:active{transform:scale(.88)}
-.ex-card-fav svg{width:14px;height:14px}
-/* Exercise Detail */
-.ex-gif-hero{width:100%;aspect-ratio:1/1;object-fit:contain;background:#070810;border-radius:18px;border:1px solid var(--hair);display:block;max-height:260px;object-position:center}
-.ex-gif-placeholder{width:100%;aspect-ratio:4/3;background:linear-gradient(135deg,rgba(255,90,54,.08),rgba(39,224,168,.05));border-radius:18px;border:1px solid var(--hair);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px}
-.muscle-tag{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:700;padding:5px 11px;border-radius:999px;letter-spacing:.02em;margin:3px}
-.muscle-tag.primary{color:var(--ember-2);background:rgba(255,90,54,.13)}
-.muscle-tag.secondary{color:var(--muted);background:var(--glass-2);border:1px solid var(--hair)}
-.instruction-step{display:flex;gap:12px;align-items:flex-start;padding:11px 0;border-bottom:1px solid var(--hair)}
-.instruction-step:last-child{border:none}
-.instruction-step .step-num{width:26px;height:26px;border-radius:8px;flex:none;display:grid;place-items:center;font-weight:800;font-size:12px;background:rgba(39,224,168,.12);color:var(--teal);border:1px solid rgba(39,224,168,.2)}
-.instruction-step p{font-size:13.5px;line-height:1.5;padding-top:3px}
-.weight-rec-card{padding:14px;border-radius:16px;background:linear-gradient(135deg,rgba(255,90,54,.08),rgba(255,90,54,.03));border:1px solid rgba(255,90,54,.2);margin-bottom:12px}
-.ai-tip-card{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border-radius:14px;background:rgba(39,224,168,.06);border:1px solid rgba(39,224,168,.18);margin-bottom:9px}
-/* Skeleton loader */
-.skeleton{background:linear-gradient(90deg,var(--glass) 25%,rgba(255,255,255,.06) 50%,var(--glass) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:12px}
-@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
-.skel-card{border-radius:18px;overflow:hidden;background:var(--glass);border:1px solid var(--hair)}
-.skel-gif{width:100%;aspect-ratio:1;background:linear-gradient(90deg,#14171d 25%,#1c1f26 50%,#14171d 75%);background-size:200% 100%;animation:shimmer 1.4s infinite}
-.skel-line{height:10px;border-radius:6px;margin:8px 10px 4px}
-.skel-line-sm{height:8px;width:60%;border-radius:6px;margin:0 10px 10px}
-/* Empty state */
-.empty-state{text-align:center;padding:50px 20px;color:var(--muted)}
-.empty-state .es-icon{font-size:48px;margin-bottom:14px}
-.empty-state h3{font-size:17px;font-weight:700;color:var(--txt);margin-bottom:6px}
-/* Library tabs */
-.lib-tabs{display:flex;background:var(--glass);border:1px solid var(--hair);border-radius:14px;padding:4px;gap:4px;margin-bottom:16px}
-.lib-tabs button{flex:1;padding:9px;border-radius:10px;font-size:12px;font-weight:700;color:var(--muted);transition:.18s;border:none;background:none;cursor:pointer}
-.lib-tabs button.on{background:var(--glass-2);color:var(--txt)}
-/* Workout mode GIF */
-.wm-gif{width:100%;aspect-ratio:4/3;object-fit:contain;border-radius:16px;background:#070810;border:1px solid var(--hair);display:block;margin-bottom:14px}
-/* API error banner */
-.api-error{padding:12px 14px;border-radius:14px;background:rgba(255,77,94,.08);border:1px solid rgba(255,77,94,.2);font-size:13px;color:var(--muted);text-align:center;margin-bottom:14px}
+.wgerdesc p{margin:6px 0}.wgerdesc ul,.wgerdesc ol{padding-left:18px;margin:6px 0}.wgerdesc li{margin:3px 0}
 </style>
 </head>
 <body>
@@ -351,8 +294,6 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;back
   </div>
   <!-- FUEL -->
   <div id="fuel" class="screen"></div>
-  <!-- LIBRARY (ExerciseDB) -->
-  <div id="library" class="screen"></div>
   <!-- PROFILE -->
   <div id="profile" class="screen"></div>
   <!-- SUB SCREENS -->
@@ -367,12 +308,12 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;back
       <button class="nav-item" data-go="train">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M6.5 6.5 17.5 17.5"/><rect x="2" y="9" width="4" height="6" rx="1.4"/><rect x="18" y="9" width="4" height="6" rx="1.4"/><path d="M6 12h12"/></svg>
         Train<span class="nav-dot"></span></button>
-      <button class="nav-item" data-go="library">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="3" y="3" width="7" height="7" rx="1.4"/><rect x="14" y="3" width="7" height="7" rx="1.4"/><rect x="3" y="14" width="7" height="7" rx="1.4"/><rect x="14" y="14" width="7" height="7" rx="1.4"/></svg>
-        Library<span class="nav-dot"></span></button>
       <button class="nav-item" data-go="coach">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M21 11.5a8.5 8.5 0 0 1-12.3 7.6L3 21l1.9-5.7A8.5 8.5 0 1 1 21 11.5Z"/></svg>
         Coach<span class="nav-dot"></span></button>
+      <button class="nav-item" data-go="fuel">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M8 3v7a3 3 0 0 0 6 0V3"/><path d="M11 3v18"/><path d="M17 3c1.5 1 2 3 2 6s-.5 4-2 4v8"/></svg>
+        Fuel<span class="nav-dot"></span></button>
       <button class="nav-item" data-go="profile">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/></svg>
         You<span class="nav-dot"></span></button>
@@ -512,6 +453,40 @@ function exMeta(n){return EXMETA[n]||{n,m:"Target muscles",sets:3,reps:"8–12",
   cues:["Set up with a stable base and braced core.","Move through a full, controlled range of motion.","Squeeze at the peak, control the negative."],
   mistakes:["Using momentum instead of muscle","Cutting the range of motion short","Going too heavy and losing form"]};}
 
+/* ============================ WGER LIVE DATA ============================ */
+/* Vanilla port of the wger integration layer. Reads the public, no-auth
+   endpoints (exercises, muscles, categories, equipment) straight from the
+   browser. If your host blocks the cross-site request (CORS), set WGER.proxy
+   to your DirectAdmin proxy, e.g.  WGER.proxy = "wger-proxy.php?url=";        */
+const WGER = {
+  base: "https://wger.de/api/v2",
+  proxy: "",          // e.g. "wger-proxy.php?url="  (leave "" to call wger.de directly)
+  lang: 2,            // 2 = English
+  _cache: {},
+  _byId: {},
+  url(path, params){
+    const qs = params ? "?" + new URLSearchParams(params).toString() : "";
+    const full = this.base + path + qs;
+    return this.proxy ? this.proxy + encodeURIComponent(full) : full;
+  },
+  async get(path, params){
+    const key = path + JSON.stringify(params || {});
+    if(this._cache[key]) return this._cache[key];
+    const r = await fetch(this.url(path, params), { headers:{ Accept:"application/json" } });
+    if(!r.ok) throw new Error("wger " + r.status);
+    const j = await r.json();
+    this._cache[key] = j; return j;
+  },
+  exercises(params={}){ return this.get("/exerciseinfo/", { language:this.lang, limit:24, ...params }); },
+  exercise(id){ return this.get(`/exerciseinfo/${id}/`); },
+  categories(){ return this.get("/exercisecategory/", { limit:50 }); },
+  /* presentation helpers */
+  name(ex){ const t=(ex.translations||[]).find(t=>t.language===this.lang)||(ex.translations||[]).find(t=>t.language===2)||(ex.translations||[])[0]; return t?t.name:("Exercise #"+ex.id); },
+  desc(ex){ const t=(ex.translations||[]).find(t=>t.language===this.lang)||(ex.translations||[])[0]; return t?(t.description||""):""; },
+  img(ex){ const i=(ex.images||[]).find(i=>i.is_main)||(ex.images||[])[0]; return i?i.image:null; },
+  vid(ex){ const v=(ex.videos||[]).find(v=>v.is_main)||(ex.videos||[])[0]; return v?v.video:null; },
+};
+
 const MEALS = {
   Breakfast:{kcal:520,p:42,c:48,f:16,items:[
     {f:"3 whole eggs + 3 egg whites, scrambled",p:30,kcal:280},
@@ -629,7 +604,6 @@ function go(scr,opt){
   if(scr==='train')renderTrain();
   if(scr==='fuel')renderFuel();
   if(scr==='profile')renderProfile();
-  if(scr==='library')renderLibrary();
   if(scr==='coach'){renderQreply();scrollCoach();}
   $('#'+scr).scrollTop=0;
 }
@@ -921,6 +895,86 @@ function openExercise(name){
     <button class="btn primary full mt" onclick="closeSheet();toast('${e.n} logged ✓')">Done with ${e.n.split(' ')[0]}</button>
   `);
 }
+/* ---- live wger browser ---- */
+async function wgerBrowse(catId){
+  go('sub'); const c=$("#sub"); c.scrollTop=0;
+  const back=`<button class="iconbtn mb" onclick="openSub('library')"><svg viewBox="0 0 24 24" width="18" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg></button>`;
+  c.innerHTML=`<div class="fade-up">${back}<div class="eyebrow" style="color:var(--teal)">● Live · wger.de</div>
+    <h1 style="margin:6px 0 14px">Exercise Database</h1>
+    <div id="wgerCats" class="row" style="gap:7px;flex-wrap:wrap;margin-bottom:14px;overflow-x:auto"></div>
+    <div id="wgerList"><div class="h-sub" style="text-align:center;padding:36px">Loading exercises…</div></div></div>`;
+  try{
+    const cats=(await WGER.categories()).results||[];
+    $("#wgerCats").innerHTML=`<button class="chip ${!catId?'on':''}" onclick="wgerBrowse()">All</button>`+
+      cats.map(ct=>`<button class="chip ${catId==ct.id?'on':''}" onclick="wgerBrowse(${ct.id})">${ct.name}</button>`).join('');
+    const params={limit:30}; if(catId)params.category=catId;
+    const ex=((await WGER.exercises(params)).results||[]).filter(e=>WGER.name(e));
+    ex.forEach(e=>WGER._byId[e.id]=e);
+    $("#wgerList").innerHTML = ex.length
+      ? ex.map(e=>wgerCard(e)).join('')
+      : `<div class="h-sub" style="text-align:center;padding:24px">No exercises in this category.</div>`;
+  }catch(err){
+    $("#wgerList").innerHTML=`<div class="card pad" style="text-align:center">
+      <div style="font-size:30px">🌐</div>
+      <div style="font-weight:750;margin-top:6px">Couldn't reach wger</div>
+      <div class="h-sub" style="font-size:13px;margin-top:6px;line-height:1.5">Your browser likely blocked the cross-site request (CORS). Drop <code>wger-proxy.php</code> on your DirectAdmin host and set <code>WGER.proxy = "wger-proxy.php?url="</code> near the top of the script.</div>
+      <button class="btn ghost full mt" onclick="openSub('library')">← Back to built-in library</button></div>`;
+  }
+}
+function wgerCard(e){
+  const img=WGER.img(e);
+  const mus=(e.muscles||[]).map(m=>m.name_en||m.name).slice(0,2).join(', ')||(e.category&&e.category.name)||'';
+  return `<div class="kv" onclick="openWgerExercise(${e.id})" style="cursor:pointer;align-items:center">
+    <div class="row" style="gap:11px"><div class="vtile" style="width:52px;height:39px;aspect-ratio:unset;border-radius:9px;overflow:hidden;flex:none">
+      ${img?`<img src="${img}" style="width:100%;height:100%;object-fit:cover" loading="lazy">`:`<div class="vmesh"></div>`}</div>
+      <div><div style="font-weight:600">${WGER.name(e)}</div><div class="h-sub" style="font-size:12px">${mus}</div></div></div>
+    <svg class="chev" viewBox="0 0 24 24" width="16" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 6 6 6-6 6"/></svg></div>`;
+}
+async function openWgerExercise(id){
+  openSheetHTML(`<div class="h-sub" style="text-align:center;padding:46px">Loading…</div>`);
+  let e=WGER._byId[id];
+  try{ if(!e||!e.translations) { e=await WGER.exercise(id); WGER._byId[id]=e; } }
+  catch(err){ openSheetHTML(`<div class="card pad" style="text-align:center">Couldn't load this exercise.<button class="btn ghost full mt" onclick="closeSheet()">Close</button></div>`); return; }
+  const nm=WGER.name(e), img=WGER.img(e), vid=WGER.vid(e);
+  const prim=(e.muscles||[]).map(m=>m.name_en||m.name);
+  const sec=(e.muscles_secondary||[]).map(m=>m.name_en||m.name);
+  const equip=(e.equipment||[]).map(x=>x.name);
+  const desc=(WGER.desc(e)||'').trim();
+  const esc=nm.replace(/'/g,"\\'");
+  timer.dur=90;timer.t=90;timer.run=false;clearInterval(timer.iv);
+  const sets=Array.from({length:3},(_,i)=>`
+    <div class="row" style="gap:8px;padding:9px 0;border-bottom:1px solid var(--hair)">
+      <div class="exnum" style="width:28px;height:28px;font-size:12px">${i+1}</div>
+      <input class="inp" style="padding:9px;text-align:center" placeholder="kg" inputmode="decimal">
+      <input class="inp" style="padding:9px;text-align:center" placeholder="reps" inputmode="numeric">
+      <button class="chip" onclick="this.classList.toggle('on');this.textContent=this.classList.contains('on')?'✓ Done':'Log';startTimer()">Log</button>
+    </div>`).join('');
+  const media = vid
+    ? `<video src="${vid}" controls playsinline ${img?`poster="${img}"`:''} style="width:100%;border-radius:16px;display:block;background:#000;aspect-ratio:16/9;object-fit:cover"></video>`
+    : img
+      ? `<div class="vtile mb" style="background:#000"><img src="${img}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0"><a href="${yt(nm)}" target="_blank" rel="noopener" class="play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></a></div>`
+      : `<div class="vtile mb"><div class="vmesh"></div><a href="${yt(nm)}" target="_blank" rel="noopener" class="play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></a></div>`;
+  openSheetHTML(`
+    ${media}
+    <div class="row mt-s" style="gap:6px;flex-wrap:wrap"><span class="pill teal">wger</span>${e.category?`<span class="pill blue">${e.category.name}</span>`:''}${equip.slice(0,3).map(x=>`<span class="pill">${x}</span>`).join('')}</div>
+    <h2 style="font-size:22px;margin-top:10px">${nm}</h2>
+    <div class="card pad mt"><div class="eyebrow" style="color:var(--teal)">🎯 Muscles worked</div>
+      <div style="margin-top:7px;font-weight:600">Primary: <span style="font-weight:500">${prim.join(', ')||'—'}</span></div>
+      <div class="h-sub" style="margin-top:3px">Secondary: ${sec.join(', ')||'—'}</div></div>
+    ${desc?`<div class="card pad mt"><div class="eyebrow">▸ Instructions</div><div class="wgerdesc" style="margin-top:8px;font-size:14px;line-height:1.55">${desc}</div></div>`:''}
+    <div class="eyebrow mt" style="margin:18px 0 8px">📋 Log your sets</div>
+    <div class="card pad">${sets}</div>
+    <div class="card pad mt" id="timerCard" style="text-align:center;background:linear-gradient(135deg,rgba(77,141,255,.08),transparent)">
+      <div class="eyebrow">Rest timer</div>
+      <div class="timerBig" id="timerDisp" style="color:var(--blue)">${fmtTime(timer.t)}</div>
+      <div class="row" style="justify-content:center;gap:10px;margin-top:6px">
+        <button class="btn ghost" onclick="addTime(15)">+15s</button>
+        <button class="btn teal" id="timerToggle" onclick="toggleTimer()" style="padding:14px 28px">Start</button>
+        <button class="btn ghost" onclick="resetTimer()">Reset</button></div>
+    </div>
+    <button class="btn primary full mt" onclick="closeSheet();toast('${esc} logged ✓')">Done</button>
+  `);
+}
 function fmtTime(s){return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;}
 function startTimer(){timer.t=timer.dur;if(!timer.run)toggleTimer();else{updTimer();}}
 function toggleTimer(){
@@ -1059,7 +1113,13 @@ const SUBS={
   },
   library(){
     const groups=Object.keys(LIBRARY);
-    return `<div class="eyebrow">Form · muscles · mistakes</div><h1 style="margin:6px 0 16px">Exercise Library</h1>
+    return `<div class="eyebrow">Form · muscles · mistakes</div><h1 style="margin:6px 0 14px">Exercise Library</h1>
+    <div class="card pad mb" onclick="wgerBrowse()" style="cursor:pointer;background:linear-gradient(135deg,rgba(39,224,168,.12),rgba(77,141,255,.06));border-color:rgba(39,224,168,.25)">
+      <div class="between"><div class="row" style="gap:11px;align-items:center">
+        <div style="font-size:24px">🌐</div>
+        <div><div style="font-weight:750">Browse live wger database</div>
+        <div class="h-sub" style="font-size:12.5px">Thousands of real exercises · photos & video demos</div></div></div>
+        <svg class="chev" viewBox="0 0 24 24" width="16" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 6 6 6-6 6"/></svg></div></div>
     ${groups.map(g=>`<div class="card pad mb">
       <div class="between mb"><h2 style="font-size:17px">${g}</h2><span class="chip">${LIBRARY[g].length}</span></div>
       ${LIBRARY[g].map(n=>`<div class="kv" onclick="openExercise('${n.replace(/'/g,"\\'")}')" style="cursor:pointer;align-items:center">
@@ -1200,815 +1260,16 @@ async function sendCoach(){
 $("#coachInput").addEventListener("input",e=>{e.target.style.height="auto";e.target.style.height=Math.min(96,e.target.scrollHeight)+"px";});
 $("#coachInput").addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendCoach();}});
 
-
-/* ============================================================
-   EXERCISEDB SERVICE LAYER
-   RapidAPI key stored in window.__RAPIDAPI_KEY
-   Set via: window.__RAPIDAPI_KEY = 'YOUR_KEY';
-   In production: inject server-side or via env-aware build step.
-   ============================================================ */
-
-// ── Config ──────────────────────────────────────────────────
-window.__RAPIDAPI_KEY = window.__RAPIDAPI_KEY || '8361827e00mshf4f3ef751e3a616p19e437jsna5b767cab40b';
-const RAPIDAPI_HOST = 'exercisedb.p.rapidapi.com';
-const RAPIDAPI_BASE = `https://${RAPIDAPI_HOST}`;
-
-// ── In-memory cache (persists for session) ───────────────────
-const _exCache = new Map();
-const _gifCache = new Map(); // url → blob URL
-const LS_FAV_KEY = 'hc_fav_exercises';
-const LS_EXDB_KEY = 'hc_exdb_cache';
-
-// ── Favorites (localStorage) ─────────────────────────────────
-function getFavs(){try{return JSON.parse(localStorage.getItem(LS_FAV_KEY)||'[]');}catch{return [];}}
-function saveFavs(arr){localStorage.setItem(LS_FAV_KEY,JSON.stringify(arr));}
-function isFav(id){return getFavs().includes(id);}
-function toggleFav(id){
-  let f=getFavs();
-  if(f.includes(id)){f=f.filter(x=>x!==id);toast('Removed from favorites');}
-  else{f.push(id);toast('❤️ Saved to favorites');}
-  saveFavs(f);return f.includes(id);
-}
-
-// ── Persistent disk cache via localStorage ───────────────────
-function lsGetCache(key){
-  try{const d=JSON.parse(localStorage.getItem(LS_EXDB_KEY)||'{}');return d[key]||null;}
-  catch{return null;}
-}
-function lsSetCache(key,val){
-  try{const d=JSON.parse(localStorage.getItem(LS_EXDB_KEY)||'{}');
-    d[key]=val;
-    // Keep cache under 4MB: drop oldest if needed
-    const str=JSON.stringify(d);
-    if(str.length>3800000){const keys=Object.keys(d);delete d[keys[0]];}
-    localStorage.setItem(LS_EXDB_KEY,JSON.stringify(d));
-  }catch(e){}}
-
-// ── Core fetch with caching, retry/backoff + stale-on-error fallback ─
-// NOTE: API key is shipped client-side, visible in dev tools / network tab.
-// Fine for a prototype on a free-tier key; for production, proxy this
-// through a small server endpoint so the key isn't public.
-const EXDB_MAX_RETRIES = 2;          // retries after the first attempt
-const EXDB_RETRY_BASE_MS = 900;      // backoff base (900ms, 1800ms, ...)
-
-function _sleep(ms){return new Promise(r=>setTimeout(r,ms));}
-
-async function exFetch(path, opts={}){
-  const url = RAPIDAPI_BASE + path;
-  const cKey = path + JSON.stringify(opts);
-
-  // 1) Memory cache
-  if(_exCache.has(cKey)) return _exCache.get(cKey);
-
-  // 2) LocalStorage cache (fresh path — used immediately, no network call)
-  const lsCached = lsGetCache(cKey);
-  if(lsCached){_exCache.set(cKey, lsCached); return lsCached;}
-
-  // 3) Live fetch, with retry+backoff on 429 specifically
-  let lastErr = null;
-  for(let attempt = 0; attempt <= EXDB_MAX_RETRIES; attempt++){
-    try{
-      const res = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'x-rapidapi-key': window.__RAPIDAPI_KEY,
-          'x-rapidapi-host': RAPIDAPI_HOST,
-          'Content-Type': 'application/json',
-          ...opts.headers
-        },
-        signal: opts.signal
-      });
-
-      if(res.status === 429){
-        lastErr = new Error('RATE_LIMIT');
-        if(attempt < EXDB_MAX_RETRIES){
-          await _sleep(EXDB_RETRY_BASE_MS * Math.pow(2, attempt));
-          continue;
-        }
-        throw lastErr;
-      }
-      if(!res.ok) throw new Error(`API_ERR:${res.status}`);
-
-      const data = await res.json();
-      _exCache.set(cKey, data);
-      lsSetCache(cKey, data);
-      lsSetCache('stale:'+cKey, data); // never overwritten on failure, used as last-resort fallback
-      return data;
-    }catch(e){
-      lastErr = e;
-      // Network errors (offline, CORS, DNS) — don't retry, fail fast
-      if(e.message !== 'RATE_LIMIT' && !e.message.startsWith('API_ERR')) break;
-    }
-  }
-
-  // 4) All retries exhausted — fall back to ANY stale cache we have
-  //    (even past its normal freshness), rather than showing a dead screen.
-  const stale = lsGetCache('stale:'+cKey) || lsGetCache(cKey);
-  if(stale){_exCache.set(cKey, stale); return stale;}
-
-  throw lastErr || new Error('UNKNOWN_ERR');
-}
-
-// ── Offline fallback dataset ──────────────────────────────────
-// Used ONLY when the live API fails AND there is no cache (memory,
-// localStorage, or stale) to fall back to — e.g. a brand-new install
-// hitting a rate-limited/expired key on first load. Keeps the Library
-// screen usable (no GIFs, but real exercise data) instead of a dead end.
-const EXDB_FALLBACK = [
-  {id:'fb_0001',name:'barbell bench press',bodyPart:'chest',target:'pectorals',equipment:'barbell',gifUrl:'',secondaryMuscles:['triceps','deltoids'],instructions:['Lie on a flat bench, grip the bar slightly wider than shoulder width.','Lower the bar to mid-chest with control.','Press the bar back up to full elbow extension.']},
-  {id:'fb_0002',name:'incline dumbbell press',bodyPart:'chest',target:'pectorals',equipment:'dumbbell',gifUrl:'',secondaryMuscles:['triceps','deltoids'],instructions:['Set bench to a 30-45° incline.','Press dumbbells up until arms are extended.','Lower with control to chest level.']},
-  {id:'fb_0003',name:'push-up',bodyPart:'chest',target:'pectorals',equipment:'body weight',gifUrl:'',secondaryMuscles:['triceps','core'],instructions:['Start in a plank position, hands under shoulders.','Lower chest to the floor.','Push back up to full extension.']},
-  {id:'fb_0004',name:'cable fly',bodyPart:'chest',target:'pectorals',equipment:'cable',gifUrl:'',secondaryMuscles:['deltoids'],instructions:['Stand between two cable towers, slight forward lean.','Bring handles together in front of chest.','Return with control.']},
-  {id:'fb_0005',name:'pull-up',bodyPart:'back',target:'lats',equipment:'body weight',gifUrl:'',secondaryMuscles:['biceps','forearms'],instructions:['Hang from a bar, hands wider than shoulders.','Pull chin above the bar.','Lower with control to full extension.']},
-  {id:'fb_0006',name:'barbell deadlift',bodyPart:'back',target:'spine',equipment:'barbell',gifUrl:'',secondaryMuscles:['glutes','hamstrings'],instructions:['Stand with feet hip-width, bar over mid-foot.','Hinge at hips, grip the bar, flat back.','Drive through heels to stand tall.']},
-  {id:'fb_0007',name:'lat pulldown',bodyPart:'back',target:'lats',equipment:'cable',gifUrl:'',secondaryMuscles:['biceps'],instructions:['Sit at the lat pulldown station, grip bar wide.','Pull bar to upper chest.','Control the return to full stretch.']},
-  {id:'fb_0008',name:'bent over barbell row',bodyPart:'back',target:'upper back',equipment:'barbell',gifUrl:'',secondaryMuscles:['biceps','lats'],instructions:['Hinge forward with flat back, knees soft.','Pull bar to lower ribs.','Lower with control.']},
-  {id:'fb_0009',name:'overhead barbell press',bodyPart:'shoulders',target:'deltoids',equipment:'barbell',gifUrl:'',secondaryMuscles:['triceps','core'],instructions:['Bar at shoulder height, hands just outside shoulders.','Press overhead to full extension.','Lower with control to start.']},
-  {id:'fb_0010',name:'dumbbell lateral raise',bodyPart:'shoulders',target:'deltoids',equipment:'dumbbell',gifUrl:'',secondaryMuscles:[],instructions:['Stand tall, dumbbells at sides.','Raise arms out to shoulder height.','Lower with control.']},
-  {id:'fb_0011',name:'face pull',bodyPart:'shoulders',target:'deltoids',equipment:'cable',gifUrl:'',secondaryMuscles:['upper back'],instructions:['Set cable to face height with rope attachment.','Pull toward face, elbows high.','Return with control.']},
-  {id:'fb_0012',name:'barbell curl',bodyPart:'upper arms',target:'biceps',equipment:'barbell',gifUrl:'',secondaryMuscles:['forearms'],instructions:['Stand tall, bar at thigh height, shoulder-width grip.','Curl bar to shoulder height.','Lower with control.']},
-  {id:'fb_0013',name:'tricep pushdown',bodyPart:'upper arms',target:'triceps',equipment:'cable',gifUrl:'',secondaryMuscles:[],instructions:['Grip the bar at chest height, elbows tucked.','Push down to full extension.','Return with control.']},
-  {id:'fb_0014',name:'hammer curl',bodyPart:'upper arms',target:'biceps',equipment:'dumbbell',gifUrl:'',secondaryMuscles:['forearms'],instructions:['Stand tall, dumbbells at sides, neutral grip.','Curl to shoulder height.','Lower with control.']},
-  {id:'fb_0015',name:'barbell back squat',bodyPart:'upper legs',target:'quadriceps',equipment:'barbell',gifUrl:'',secondaryMuscles:['glutes','hamstrings'],instructions:['Bar racked across upper back, feet shoulder-width.','Sit hips back and down until thighs are parallel.','Drive through heels to stand.']},
-  {id:'fb_0016',name:'romanian deadlift',bodyPart:'upper legs',target:'hamstrings',equipment:'barbell',gifUrl:'',secondaryMuscles:['glutes'],instructions:['Stand tall, slight knee bend, bar at hip height.','Hinge hips back, lower bar along legs.','Drive hips forward to stand.']},
-  {id:'fb_0017',name:'leg press',bodyPart:'upper legs',target:'quadriceps',equipment:'leverage machine',gifUrl:'',secondaryMuscles:['glutes'],instructions:['Sit in the leg press, feet shoulder-width on plate.','Lower until knees reach ~90°.','Press back to extension without locking knees.']},
-  {id:'fb_0018',name:'walking lunge',bodyPart:'upper legs',target:'quadriceps',equipment:'body weight',gifUrl:'',secondaryMuscles:['glutes','hamstrings'],instructions:['Step forward into a lunge, knee tracking over ankle.','Push off back foot to bring it forward.','Alternate legs while walking.']},
-  {id:'fb_0019',name:'standing calf raise',bodyPart:'lower legs',target:'calves',equipment:'body weight',gifUrl:'',secondaryMuscles:[],instructions:['Stand tall, balls of feet on a raised edge.','Rise onto toes as high as possible.','Lower with control past neutral.']},
-  {id:'fb_0020',name:'plank',bodyPart:'waist',target:'abs',equipment:'body weight',gifUrl:'',secondaryMuscles:['lower back'],instructions:['Forearms on the ground, body in a straight line.','Brace core, keep hips level.','Hold position for time.']},
-  {id:'fb_0021',name:'hanging leg raise',bodyPart:'waist',target:'abs',equipment:'body weight',gifUrl:'',secondaryMuscles:['hip flexors'],instructions:['Hang from a bar, legs extended.','Raise legs to hip height or above.','Lower with control.']},
-  {id:'fb_0022',name:'cable crunch',bodyPart:'waist',target:'abs',equipment:'cable',gifUrl:'',secondaryMuscles:[],instructions:['Kneel below a high cable, rope at neck.','Crunch down, rounding the spine.','Return with control.']},
-  {id:'fb_0023',name:'treadmill running',bodyPart:'cardio',target:'cardiovascular system',equipment:'machine',gifUrl:'',secondaryMuscles:['quadriceps','calves'],instructions:['Set desired speed and incline.','Maintain steady form and breathing.','Cool down with a gradual pace decrease.']},
-  {id:'fb_0024',name:'jump rope',bodyPart:'cardio',target:'cardiovascular system',equipment:'rope',gifUrl:'',secondaryMuscles:['calves'],instructions:['Hold rope handles at hip height.','Jump with light, even bounces.','Keep a steady rhythm.']},
-  {id:'fb_0025',name:'rowing machine',bodyPart:'cardio',target:'cardiovascular system',equipment:'machine',gifUrl:'',secondaryMuscles:['back','legs'],instructions:['Strap in, knees bent, arms extended.','Drive legs, then pull handle to chest.','Reverse the sequence to return.']},
-];
-
-function fallbackByBodyPart(bp){
-  return EXDB_FALLBACK.filter(e=>e.bodyPart===bp);
-}
-function fallbackSearch(q){
-  q = q.toLowerCase().trim();
-  return EXDB_FALLBACK.filter(e=>
-    e.name.toLowerCase().includes(q) ||
-    e.target.toLowerCase().includes(q) ||
-    e.bodyPart.toLowerCase().includes(q)
-  );
-}
-function fallbackById(id){
-  return EXDB_FALLBACK.find(e=>e.id===id) || null;
-}
-
-
-/** Get all exercises (paginated — limit 20 per page) */
-async function getAllExercises(limit=20, offset=0){
-  try{
-    return await exFetch(`/exercises?limit=${limit}&offset=${offset}`);
-  }catch(err){
-    if(offset===0) return EXDB_FALLBACK; // first page only — don't fake pagination
-    throw err;
-  }
-}
-
-/** Get single exercise by ID */
-async function getExerciseById(id){
-  try{
-    return await exFetch(`/exercises/exercise/${id}`);
-  }catch(err){
-    const fb = fallbackById(id);
-    if(fb) return fb;
-    throw err;
-  }
-}
-
-/** Get exercises by body part (chest, back, lower arms, lower legs, neck, shoulders, upper arms, upper legs, waist, cardio) */
-async function getExercisesByBodyPart(bodyPart){
-  try{
-    return await exFetch(`/exercises/bodyPart/${encodeURIComponent(bodyPart)}?limit=30`);
-  }catch(err){
-    const fb = fallbackByBodyPart(bodyPart);
-    if(fb.length) return fb;
-    throw err;
-  }
-}
-
-/** Get exercises by target muscle */
-async function getExercisesByTargetMuscle(muscle){
-  return exFetch(`/exercises/target/${encodeURIComponent(muscle)}?limit=30`);
-}
-
-/** Get exercises by equipment */
-async function getExercisesByEquipment(equipment){
-  return exFetch(`/exercises/equipment/${encodeURIComponent(equipment)}?limit=30`);
-}
-
-/** Search exercises by name (client-side filter after fetching) */
-async function searchExercises(query){
-  // ExerciseDB doesn't have a direct search endpoint; we load by name via body-part broad search
-  const q = query.toLowerCase().trim();
-  const cKey = `search:${q}`;
-  if(_exCache.has(cKey)) return _exCache.get(cKey);
-  const lsCached = lsGetCache(cKey);
-  if(lsCached){_exCache.set(cKey,lsCached);return lsCached;}
-
-  let results = [];
-  try{
-    const all = await exFetch(`/exercises?limit=100&offset=0`);
-    results = (Array.isArray(all)?all:[]).filter(e=>
-      e.name.toLowerCase().includes(q)||
-      e.target.toLowerCase().includes(q)||
-      e.bodyPart.toLowerCase().includes(q)||
-      (e.secondaryMuscles||[]).some(m=>m.toLowerCase().includes(q))
-    );
-    _exCache.set(cKey,results);
-    lsSetCache(cKey,results);
-  }catch(err){
-    // API unavailable — search the offline fallback set instead of returning empty
-    results = fallbackSearch(q);
-  }
-  return results;
-}
-
-/** Get available body parts list */
-async function getBodyPartList(){
-  return exFetch('/exercises/bodyPartList');
-}
-
-/** Get available equipment list */
-async function getEquipmentList(){
-  return exFetch('/exercises/equipmentList');
-}
-
-/** Get available target muscles list */
-async function getTargetList(){
-  return exFetch('/exercises/targetList');
-}
-
-// ── Body Part → ExerciseDB mapping ──────────────────────────
-const BODY_PART_MAP = {
-  'Chest':      'chest',
-  'Back':       'back',
-  'Shoulders':  'shoulders',
-  'Biceps':     'upper arms',
-  'Triceps':    'upper arms',
-  'Legs':       'upper legs',
-  'Abs':        'waist',
-  'Cardio':     'cardio',
-};
-
-const CATEGORY_ICONS = {
-  'Chest':'💪','Back':'🔻','Shoulders':'🔝','Biceps':'💪','Triceps':'💪',
-  'Legs':'🦵','Abs':'⚡','Cardio':'🏃','All':'🏋️','Favorites':'❤️'
-};
-
-// ── AI Weight Recommendation Engine ─────────────────────────
-function getWeightRecommendation(exerciseName, user){
-  const e = user.exp || 'intermediate';
-  const w = user.weightKg || 80;
-  const multipliers = {
-    'Bench Press':       {beginner:0.5, intermediate:0.75, advanced:1.0},
-    'Squat':             {beginner:0.6, intermediate:0.9,  advanced:1.2},
-    'Deadlift':          {beginner:0.7, intermediate:1.0,  advanced:1.4},
-    'Shoulder Press':    {beginner:0.35,intermediate:0.55, advanced:0.75},
-    'Lat Pulldown':      {beginner:0.45,intermediate:0.65, advanced:0.85},
-    'Barbell Curl':      {beginner:0.2, intermediate:0.3,  advanced:0.4},
-  };
-  const n = exerciseName;
-  const m = multipliers[n] || {beginner:0.3, intermediate:0.45, advanced:0.6};
-  const base = Math.round(w * (m[e]||0.4) / 2.5) * 2.5;
-  const progress = Math.round(base * 1.1 / 2.5) * 2.5;
-  const deload = Math.round(base * 0.8 / 2.5) * 2.5;
-  return {start:`${base} kg`, progress:`${progress} kg`, deload:`${deload} kg`,
-    note: e==='beginner'?'Focus on form before adding weight':
-          e==='intermediate'?'Add 2.5 kg when you hit top of rep range for 2 sessions':
-          'Use double progression — add reps first, then weight.'};
-}
-
-// ── AI Tips Generator (via Claude API) ──────────────────────
-const _tipsCache = {};
-async function generateAITip(exercise){
-  const key = exercise.id || exercise.name;
-  if(_tipsCache[key]) return _tipsCache[key];
-  try{
-    const res = await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        model:'claude-sonnet-4-6',
-        max_tokens:200,
-        system:`You are Coach Felix, a certified hybrid athlete coach. Give exactly 2–3 ultra-concise coaching tips for the exercise. Format: a single short paragraph. No headers, no lists. Pure coaching gold in 50 words max.`,
-        messages:[{role:'user',content:`Give coaching tips for: ${exercise.name} (targets: ${exercise.target}, bodyPart: ${exercise.bodyPart})`}]
-      })
-    });
-    const d = await res.json();
-    const tip = (d.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('').trim();
-    _tipsCache[key] = tip;
-    return tip;
-  }catch(e){
-    return `Keep your core braced throughout. Control the eccentric (lowering) phase — don't let gravity do the work. Stay in full range of motion for maximum muscle recruitment.`;
-  }
-}
-
-/* ============================================================
-   LIBRARY SCREEN STATE
-   ============================================================ */
-const LIB = {
-  tab: 'browse',       // 'browse' | 'favorites'
-  category: 'All',
-  bodyPart: '',
-  equipmentFilter: '',
-  searchQ: '',
-  exercises: [],
-  loading: false,
-  page: 0,
-  hasMore: true,
-  bodyParts: [],
-  equipmentList: [],
-  targets: [],
-  filterMode: 'category', // 'category' | 'muscle' | 'equipment'
-};
-
-const LIB_CATEGORIES = ['All','Chest','Back','Shoulders','Biceps','Triceps','Legs','Abs','Cardio','Favorites'];
-
-/* ── Render Library Screen ───────────────────────────────── */
-async function renderLibrary(){
-  const c = $('#library');
-  c.innerHTML = `
-    <div class="fade-up">
-      <div class="eyebrow">ExerciseDB · ${_exCache.size > 0 ? 'Live' : 'Loading...'}</div>
-      <div class="between" style="margin:6px 0 16px">
-        <h1>Exercise Library</h1>
-        <button class="iconbtn" onclick="openLibraryFilters()" title="Filters">
-          <svg viewBox="0 0 24 24" width="19" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M7 12h10M11 18h2"/></svg>
-        </button>
-      </div>
-
-      <!-- Search bar -->
-      <div class="lib-search">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-        <input id="libSearch" type="text" placeholder="Search exercises, muscles…" value="${LIB.searchQ}"
-          oninput="libSearchDebounce(this.value)">
-        ${LIB.searchQ?`<button style="color:var(--muted);background:none;border:none;cursor:pointer;font-size:18px;padding:0" onclick="clearLibSearch()">×</button>`:''}
-      </div>
-
-      <!-- Category tabs -->
-      <div class="filter-row" id="libCatRow">
-        ${LIB_CATEGORIES.map(cat=>`
-          <span class="filter-chip ${LIB.category===cat&&LIB.tab==='browse'?'active':cat==='Favorites'&&LIB.tab==='favorites'?'active':''}"
-            onclick="setLibCategory('${cat}')">${CATEGORY_ICONS[cat]||''} ${cat}</span>
-        `).join('')}
-      </div>
-
-      <!-- Exercise grid -->
-      <div id="libGrid"></div>
-      <div id="libLoad" style="text-align:center;padding:20px 0;display:none">
-        <div class="skeleton" style="width:80px;height:14px;margin:0 auto;border-radius:7px"></div>
-      </div>
-    </div>
-  `;
-
-  await loadLibExercises(true);
-  setupLibScroll();
-}
-
-let _libSearchTimer = null;
-function libSearchDebounce(val){
-  LIB.searchQ = val;
-  clearTimeout(_libSearchTimer);
-  _libSearchTimer = setTimeout(()=>loadLibExercises(true), 450);
-}
-function clearLibSearch(){LIB.searchQ='';renderLibrary();}
-
-function setLibCategory(cat){
-  if(cat==='Favorites'){LIB.tab='favorites';LIB.category='Favorites';}
-  else{LIB.tab='browse';LIB.category=cat;}
-  LIB.searchQ='';
-  renderLibrary();
-}
-
-async function loadLibExercises(reset=false){
-  if(reset){LIB.exercises=[];LIB.page=0;LIB.hasMore=true;}
-  if(!LIB.hasMore || LIB.loading) return;
-  LIB.loading = true;
-
-  const grid = $('#libGrid');
-  const loadEl = $('#libLoad');
-  if(!grid) return;
-
-  if(reset) grid.innerHTML = libSkeletons(6);
-  if(loadEl) loadEl.style.display = 'block';
-
-  try{
-    let exercises = [];
-
-    if(LIB.tab === 'favorites'){
-      // Load saved favorites
-      const favIds = getFavs();
-      if(favIds.length === 0){
-        grid.innerHTML = `<div class="empty-state"><div class="es-icon">❤️</div><h3>No favorites yet</h3><p>Tap the heart on any exercise to save it here.</p></div>`;
-        LIB.loading = false; if(loadEl)loadEl.style.display='none'; return;
-      }
-      // Fetch each fav by ID (with cache)
-      exercises = await Promise.all(favIds.slice(0,20).map(id=>getExerciseById(id).catch(()=>null)));
-      exercises = exercises.filter(Boolean);
-      LIB.hasMore = false;
-    } else if(LIB.searchQ.trim()){
-      exercises = await searchExercises(LIB.searchQ.trim());
-      LIB.hasMore = false;
-    } else if(LIB.category === 'All'){
-      const data = await getAllExercises(20, LIB.page * 20);
-      exercises = Array.isArray(data) ? data : [];
-      LIB.hasMore = exercises.length === 20;
-    } else {
-      const bp = BODY_PART_MAP[LIB.category];
-      if(bp){
-        let data = await getExercisesByBodyPart(bp);
-        exercises = Array.isArray(data) ? data : [];
-        // For Biceps/Triceps filter further by target
-        if(LIB.category === 'Biceps') exercises = exercises.filter(e=>e.target.includes('biceps'));
-        if(LIB.category === 'Triceps') exercises = exercises.filter(e=>e.target.includes('triceps'));
-      }
-      LIB.hasMore = false;
-    }
-
-    LIB.exercises = reset ? exercises : [...LIB.exercises, ...exercises];
-    LIB.page++;
-
-    const usingFallback = LIB.exercises.length > 0 && LIB.exercises.every(e=>String(e.id).startsWith('fb_'));
-
-    if(LIB.exercises.length === 0){
-      grid.innerHTML = `<div class="empty-state"><div class="es-icon">🔍</div><h3>No exercises found</h3><p>Try a different search or category.</p></div>`;
-    } else {
-      grid.innerHTML = `${usingFallback ? `<div class="api-error" style="margin-bottom:12px;font-size:13px">⚠️ ExerciseDB is unreachable right now — showing a small offline set. <button class="btn ghost" style="margin-top:6px;font-size:12px;padding:6px 12px" onclick="renderLibrary()">Try live data again</button></div>` : ''}<div class="ex-grid">${LIB.exercises.map(ex=>exCard(ex)).join('')}</div>`;
-    }
-  } catch(err){
-    const isRate = err.message === 'RATE_LIMIT';
-    grid.innerHTML = `<div class="api-error">
-      ${isRate ? '⚠️ Rate limit reached — please wait a moment and try again.' : '⚠️ Could not load exercises. Check your connection and try again.'}
-      <br><button class="btn ghost" style="margin-top:10px;font-size:13px" onclick="renderLibrary()">Retry</button>
-    </div>`;
-  } finally{
-    LIB.loading = false;
-    if(loadEl) loadEl.style.display = 'none';
-  }
-}
-
-function libSkeletons(n){
-  return `<div class="ex-grid">${Array.from({length:n}).map(()=>`
-    <div class="skel-card">
-      <div class="skel-gif"></div>
-      <div class="skel-line skeleton"></div>
-      <div class="skel-line-sm skeleton"></div>
-    </div>`).join('')}</div>`;
-}
-
-function exCard(ex){
-  const fav = isFav(ex.id);
-  const gifUrl = ex.gifUrl || '';
-  return `<div class="ex-card ${fav?'favorited':''}" onclick="openExerciseDetail('${ex.id}')">
-    ${gifUrl
-      ? `<img class="ex-card-gif" src="${gifUrl}" alt="${ex.name}" loading="lazy" onerror="this.parentNode.querySelector('.ex-card-gif-placeholder').style.display='flex';this.style.display='none'">`
-      : ''}
-    <div class="ex-card-gif-placeholder" style="${gifUrl?'display:none':''}">
-      ${CATEGORY_ICONS[capitalizeFirst(ex.bodyPart)]||'💪'}
-    </div>
-    <div class="ex-card-body">
-      <div class="ex-card-name">${capitalizeWords(ex.name)}</div>
-      <div class="ex-card-muscle">${capitalizeFirst(ex.target)}</div>
-    </div>
-    <button class="ex-card-fav" onclick="event.stopPropagation();handleFavToggle(this,'${ex.id}')" title="${fav?'Remove favorite':'Add favorite'}">
-      <svg viewBox="0 0 24 24" fill="${fav?'var(--ember)':'none'}" stroke="${fav?'var(--ember)':'var(--muted)'}" stroke-width="2">
-        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-      </svg>
-    </button>
-  </div>`;
-}
-
-function handleFavToggle(btn, id){
-  const wasFav = isFav(id);
-  const nowFav = toggleFav(id);
-  const card = btn.closest('.ex-card');
-  if(card) card.classList.toggle('favorited', nowFav);
-  btn.innerHTML = `<svg viewBox="0 0 24 24" fill="${nowFav?'var(--ember)':'none'}" stroke="${nowFav?'var(--ember)':'var(--muted)'}" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`;
-}
-
-function setupLibScroll(){
-  const screen = $('#library');
-  if(!screen) return;
-  screen.onscroll = () => {
-    if(screen.scrollHeight - screen.scrollTop - screen.clientHeight < 200){
-      if(!LIB.loading && LIB.hasMore) loadLibExercises(false);
-    }
-  };
-}
-
-/* ── Exercise Detail Sheet (ExerciseDB) ─────────────────── */
-let _currentDetailExercise = null;
-
-async function openExerciseDetail(id){
-  // Show loading sheet immediately
-  openSheetHTML(`
-    <div style="text-align:center;padding:60px 20px">
-      <div class="skeleton" style="width:100%;height:220px;border-radius:18px;margin-bottom:16px"></div>
-      <div class="skeleton" style="width:70%;height:18px;border-radius:9px;margin:0 auto 10px"></div>
-      <div class="skeleton" style="width:50%;height:14px;border-radius:7px;margin:0 auto"></div>
-    </div>
-  `);
-
-  try{
-    const ex = await getExerciseById(id);
-    _currentDetailExercise = ex;
-    const fav = isFav(ex.id);
-    const weightRec = getWeightRecommendation(capitalizeWords(ex.name), S.user);
-    const prevLog = S.log[ex.name] || null;
-
-    openSheetHTML(`
-      <!-- Hero GIF -->
-      <div style="position:relative;margin-bottom:16px">
-        ${ex.gifUrl
-          ? `<img class="ex-gif-hero" src="${ex.gifUrl}" alt="${ex.name}" loop autoplay>`
-          : `<div class="ex-gif-placeholder"><span style="font-size:48px">${CATEGORY_ICONS[capitalizeFirst(ex.bodyPart)]||'💪'}</span><span style="color:var(--muted);font-size:13px">No GIF available</span></div>`}
-        <button style="position:absolute;top:10px;right:10px;width:36px;height:36px;border-radius:50%;background:rgba(7,8,10,.72);border:none;cursor:pointer;display:grid;place-items:center;backdrop-filter:blur(8px)"
-          id="detFavBtn" onclick="detailToggleFav('${ex.id}',this)">
-          <svg viewBox="0 0 24 24" width="16" fill="${fav?'var(--ember)':'none'}" stroke="${fav?'var(--ember)':'white'}" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-        </button>
-      </div>
-
-      <!-- Name + badges -->
-      <h2 style="font-size:22px;margin-bottom:10px">${capitalizeWords(ex.name)}</h2>
-      <div class="row" style="gap:6px;flex-wrap:wrap;margin-bottom:16px">
-        <span class="pill ember">${capitalizeFirst(ex.bodyPart)}</span>
-        <span class="pill blue">${capitalizeFirst(ex.target)}</span>
-        <span class="pill teal">${capitalizeFirst(ex.equipment)}</span>
-      </div>
-
-      <!-- Muscles worked -->
-      <div class="card pad mb">
-        <div class="eyebrow" style="color:var(--ember-2);margin-bottom:10px">🎯 Muscles Worked</div>
-        <div style="margin-bottom:6px"><span style="font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.1em">PRIMARY</span></div>
-        <span class="muscle-tag primary">${capitalizeFirst(ex.target)}</span>
-        ${ex.secondaryMuscles && ex.secondaryMuscles.length
-          ? `<div style="margin:10px 0 6px"><span style="font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.1em">SECONDARY</span></div>
-             ${ex.secondaryMuscles.map(m=>`<span class="muscle-tag secondary">${capitalizeFirst(m)}</span>`).join('')}`
-          : ''}
-      </div>
-
-      <!-- Step-by-step instructions -->
-      ${ex.instructions && ex.instructions.length
-        ? `<div class="eyebrow mb" style="margin-top:4px">▸ Step-by-step</div>
-           <div class="card pad mb">
-             ${ex.instructions.map((step,i)=>`
-               <div class="instruction-step">
-                 <div class="step-num">${i+1}</div>
-                 <p>${step}</p>
-               </div>`).join('')}
-           </div>` : ''}
-
-      <!-- AI Coach Tips (async loaded) -->
-      <div class="eyebrow mb" style="margin-top:4px">🤖 Coach Felix Tips</div>
-      <div id="aiTipZone">
-        <div class="ai-tip-card">
-          <span style="color:var(--teal);font-weight:800;flex:none">CF</span>
-          <span style="color:var(--muted);font-size:13px">Loading coaching tips…</span>
-        </div>
-      </div>
-
-      <!-- Common mistakes (from local data if available) -->
-      ${(exMeta(capitalizeWords(ex.name)).mistakes||[]).length
-        ? `<div class="eyebrow mb" style="margin-top:8px">⚠️ Common Mistakes</div>
-           <div class="card pad mb" style="border-color:rgba(255,77,94,.2);background:rgba(255,77,94,.04)">
-             ${exMeta(capitalizeWords(ex.name)).mistakes.map(m=>`
-               <div class="mistake-card"><span class="x">🚫</span><span style="font-size:13.5px;line-height:1.4">${m}</span></div>`).join('')}
-           </div>` : ''}
-
-      <!-- AI Weight Recommendation -->
-      <div class="eyebrow mb" style="margin-top:4px">⚖️ Weight Recommendation</div>
-      <div class="weight-rec-card mb">
-        <div class="weightcols">
-          <div class="wc on" style="text-align:center;padding:10px 6px">
-            <div class="eyebrow">Start</div>
-            <div class="num" style="font-weight:800;font-size:17px;margin-top:3px">${weightRec.start}</div>
-          </div>
-          <div class="wc" style="text-align:center;padding:10px 6px">
-            <div class="eyebrow">Progress to</div>
-            <div class="num" style="font-weight:800;font-size:17px;margin-top:3px;color:var(--teal)">${weightRec.progress}</div>
-          </div>
-          <div class="wc" style="text-align:center;padding:10px 6px">
-            <div class="eyebrow">Deload</div>
-            <div class="num" style="font-weight:800;font-size:17px;margin-top:3px;color:var(--blue)">${weightRec.deload}</div>
-          </div>
-        </div>
-        <div class="h-sub mt-s" style="font-size:12px;text-align:center">${weightRec.note}</div>
-      </div>
-      ${prevLog?`<div class="card pad mb"><div class="eyebrow">📋 Last logged</div><div class="row mt-s" style="gap:8px;flex-wrap:wrap">${prevLog.sets.map((s,i)=>`<span class="chip">Set ${i+1}: ${s.w||'—'}kg × ${s.r||'—'}</span>`).join('')}</div></div>`:''}
-
-      <!-- Log sets -->
-      <div class="eyebrow mb" style="margin-top:4px">📋 Log Your Sets</div>
-      <div class="card pad mb" id="logSetsZone">
-        ${Array.from({length:exMeta(capitalizeWords(ex.name)).sets||3},(_,i)=>`
-          <div class="row" style="gap:8px;padding:9px 0;border-bottom:1px solid var(--hair)">
-            <div class="exnum" style="width:28px;height:28px;font-size:12px">${i+1}</div>
-            <input class="inp" style="padding:9px;text-align:center" placeholder="kg" inputmode="decimal">
-            <input class="inp" style="padding:9px;text-align:center" placeholder="reps" inputmode="numeric">
-            <button class="chip" onclick="logDetailSet(this,'${ex.name.replace(/'/g,"\\'")}',${i})">Log</button>
-          </div>`).join('')}
-      </div>
-
-      <!-- Rest timer -->
-      <div class="card pad mb" id="timerCard" style="text-align:center;background:linear-gradient(135deg,rgba(77,141,255,.08),transparent)">
-        <div class="eyebrow">Rest timer · ${exMeta(capitalizeWords(ex.name)).rest||90}s</div>
-        <div class="timerBig" id="timerDisp" style="color:var(--blue)">${fmtTime(exMeta(capitalizeWords(ex.name)).rest||90)}</div>
-        <div class="row" style="justify-content:center;gap:10px;margin-top:6px">
-          <button class="btn ghost" onclick="addTime(15)">+15s</button>
-          <button class="btn teal" id="timerToggle" onclick="toggleTimer()" style="padding:14px 28px">Start</button>
-          <button class="btn ghost" onclick="resetTimer()">Reset</button>
-        </div>
-      </div>
-
-      <button class="btn teal full mb" onclick="askCoachAbout('Give me detailed coaching tips for ${capitalizeWords(ex.name).replace(/'/g,"\\'")} — target: ${ex.target}, equipment: ${ex.equipment}')">
-        Ask Coach Felix about this
-      </button>
-      <button class="btn ghost full" onclick="closeSheet();toast('${capitalizeWords(ex.name).split(' ')[0]} logged ✓')">
-        Done
-      </button>
-    `);
-
-    // Set timer
-    timer.dur = exMeta(capitalizeWords(ex.name)).rest || 90;
-    timer.t = timer.dur;
-
-    // Load AI tips async (non-blocking)
-    generateAITip(ex).then(tip=>{
-      const zone = $('#aiTipZone');
-      if(zone) zone.innerHTML = `<div class="ai-tip-card"><span style="color:var(--teal);font-weight:800;flex:none">CF</span><span style="font-size:13.5px;line-height:1.5">${tip}</span></div>`;
-    });
-
-  } catch(err){
-    openSheetHTML(`<div class="api-error" style="margin:20px 0">
-      ⚠️ Could not load exercise details.${err.message==='RATE_LIMIT'?' Rate limit reached — wait a moment.':' Check your connection.'}
-      <br><button class="btn ghost" style="margin-top:12px" onclick="openExerciseDetail('${id}')">Retry</button>
-    </div>`);
-  }
-}
-
-function detailToggleFav(id, btn){
-  const nowFav = toggleFav(id);
-  btn.innerHTML = `<svg viewBox="0 0 24 24" width="16" fill="${nowFav?'var(--ember)':'none'}" stroke="${nowFav?'var(--ember)':'white'}" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`;
-}
-
-function logDetailSet(btn, exName, setIdx){
-  const row = btn.closest('.row');
-  const kg = row.querySelectorAll('input')[0].value.trim();
-  const reps = row.querySelectorAll('input')[1].value.trim();
-  if(!kg||!reps){toast('Enter weight and reps');return;}
-  if(!S.log[exName]) S.log[exName]={sets:[]};
-  S.log[exName].sets[setIdx]={w:kg,r:reps,ts:Date.now()};
-  btn.classList.add('on');btn.textContent='✓';
-  toast(`Set ${setIdx+1} logged: ${kg}kg × ${reps}`);
-  startTimer();
-}
-
-/* ── Library Filter Sheet ───────────────────────────────── */
-let _bodyPartList=[], _equipmentList=[], _targetList=[];
-
-async function openLibraryFilters(){
-  // Load lists if not cached
-  if(!_bodyPartList.length){
-    try{
-      [_bodyPartList, _equipmentList, _targetList] = await Promise.all([
-        getBodyPartList(), getEquipmentList(), getTargetList()
-      ]);
-    }catch(e){}
-  }
-  const bp = _bodyPartList.slice(0,12);
-  const eq = _equipmentList.slice(0,12);
-  openSheetHTML(`
-    <h2 style="margin-bottom:16px">Filters</h2>
-
-    <div class="eyebrow mb">Body Part</div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px">
-      ${(bp.length?bp:['chest','back','shoulders','upper arms','lower arms','upper legs','lower legs','waist']).map(p=>
-        `<span class="filter-chip ${LIB.bodyPart===p?'teal-active':''}" onclick="applyLibFilter('bodyPart','${p}')">${capitalizeFirst(p)}</span>`
-      ).join('')}
-      <span class="filter-chip ${!LIB.bodyPart?'active':''}" onclick="applyLibFilter('bodyPart','')">Clear</span>
-    </div>
-
-    <div class="eyebrow mb">Equipment</div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px">
-      ${(eq.length?eq:['barbell','dumbbell','cable','machine','bodyweight','kettlebell','resistance band']).map(e=>
-        `<span class="filter-chip ${LIB.equipmentFilter===e?'teal-active':''}" onclick="applyLibFilter('equipment','${e}')">${capitalizeFirst(e)}</span>`
-      ).join('')}
-      <span class="filter-chip ${!LIB.equipmentFilter?'active':''}" onclick="applyLibFilter('equipment','')">Clear</span>
-    </div>
-
-    <button class="btn primary full" onclick="applyAllLibFilters()">Apply Filters</button>
-    <button class="btn ghost full" style="margin-top:10px" onclick="clearAllLibFilters()">Clear All</button>
-  `);
-}
-
-async function applyLibFilter(type, val){
-  if(type==='equipment') LIB.equipmentFilter = val;
-  else LIB[type] = val;
-  // Refresh filter highlights
-  openLibraryFilters();
-}
-
-async function applyAllLibFilters(){
-  closeSheet();
-  const c = $('#library');
-  const grid = $('#libGrid');
-  if(!grid){renderLibrary();return;}
-  grid.innerHTML = libSkeletons(6);
-  try{
-    let exercises = [];
-    if(LIB.bodyPart && LIB.equipmentFilter){
-      const byBp = await getExercisesByBodyPart(LIB.bodyPart);
-      exercises = byBp.filter(e=>e.equipment===LIB.equipmentFilter);
-    } else if(LIB.bodyPart){
-      exercises = await getExercisesByBodyPart(LIB.bodyPart);
-    } else if(LIB.equipmentFilter){
-      exercises = await getExercisesByEquipment(LIB.equipmentFilter);
-    } else {
-      exercises = await getAllExercises(20,0);
-    }
-    LIB.exercises = exercises;
-    grid.innerHTML = exercises.length
-      ? `<div class="ex-grid">${exercises.map(ex=>exCard(ex)).join('')}</div>`
-      : `<div class="empty-state"><div class="es-icon">🔍</div><h3>No results</h3><p>Try different filters.</p></div>`;
-  }catch(e){grid.innerHTML=`<div class="api-error">⚠️ Filter failed. Try again.</div>`;}
-}
-
-function clearAllLibFilters(){
-  LIB.bodyPart='';LIB.equipmentFilter='';closeSheet();renderLibrary();
-}
-
-/* ── Workout Mode GIF Enhancement ──────────────────────────
-   Override openExercise to add live GIF from ExerciseDB     */
-const _originalOpenExercise = openExercise;
-window.openExercise = async function(name){
-  // Open the standard sheet first (fast)
-  _originalOpenExercise(name);
-  // Then try to enhance the vtile with a live ExerciseDB GIF
-  try{
-    const q = name.toLowerCase();
-    const results = await searchExercises(q);
-    const best = results.find(e=>e.name.toLowerCase()===q)||results[0];
-    if(best && best.gifUrl){
-      const vtile = document.querySelector('.vtile');
-      if(vtile){
-        // Replace placeholder with live GIF
-        vtile.innerHTML = `
-          <img src="${best.gifUrl}" alt="${name}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;z-index:1;background:#070810;border-radius:inherit">
-          <div style="position:absolute;bottom:10px;left:12px;z-index:2" class="pill teal">Live · ExerciseDB</div>
-          <button style="position:absolute;top:10px;right:10px;z-index:3;width:32px;height:32px;border-radius:50%;background:rgba(7,8,10,.7);border:none;cursor:pointer;display:grid;place-items:center;backdrop-filter:blur(8px)" onclick="detailToggleFav('${best.id}',this)">
-            <svg viewBox="0 0 24 24" width="14" fill="${isFav(best.id)?'var(--ember)':'none'}" stroke="${isFav(best.id)?'var(--ember)':'white'}" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-          </button>`;
-      }
-    }
-  }catch(e){/* GIF enhancement failed silently */}
-};
-
-/* ── Helpers ─────────────────────────────────────────────── */
-function capitalizeFirst(str){if(!str)return'';return str.charAt(0).toUpperCase()+str.slice(1);}
-function capitalizeWords(str){if(!str)return'';return str.split(' ').map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' ');}
-
-
-
-/* ── PWA Cache: pre-warm popular exercises ────────────────── */
-async function prewarmExerciseCache(){
-  try{
-    // Silently pre-fetch first page so Library loads instantly
-    await getAllExercises(20, 0);
-  }catch(e){}
-}
-/* ============================================================ */
+/* ============================ INIT ============================ */
 renderOnboard();
 $("#nav").style.display="none";
 
-// Pre-warm exercise cache after onboarding (background, non-blocking)
-setTimeout(()=>prewarmExerciseCache(), 3000);
-
-/* PWA: enhanced service worker with exercise GIF caching */
+/* PWA: attempt to register an inline service worker for offline (best-effort) */
 if("serviceWorker" in navigator){
   try{
-    const sw=`
-    const CACHE='hc-v2';
-    const EX_CACHE='hc-exercises-v1';
-    self.addEventListener("install",e=>{self.skipWaiting();});
-    self.addEventListener("activate",e=>{
-      self.clients.claim();
-      e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE&&k!==EX_CACHE).map(k=>caches.delete(k)))));
-    });
-    self.addEventListener("fetch",e=>{
-      const url=e.request.url;
-      // Cache exercise GIFs aggressively
-      if(url.includes('exercisedb.p.rapidapi.com')||url.includes('.gif')){
-        e.respondWith(caches.open(EX_CACHE).then(cache=>cache.match(e.request).then(r=>{
-          if(r)return r;
-          return fetch(e.request).then(res=>{cache.put(e.request,res.clone());return res;}).catch(()=>r);
-        })));
-        return;
-      }
-      e.respondWith(fetch(e.request).catch(()=>caches.match(e.request)));
-    });`;
+    const sw=`self.addEventListener("install",e=>self.skipWaiting());
+    self.addEventListener("activate",e=>self.clients.claim());
+    self.addEventListener("fetch",e=>{e.respondWith(fetch(e.request).catch(()=>caches.match(e.request)))});`;
     const blob=new Blob([sw],{type:"text/javascript"});
     navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(()=>{});
   }catch(e){}
