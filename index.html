@@ -480,6 +480,11 @@ const WGER = {
   exercises(params={}){ return this.get("/exerciseinfo/", { language:this.lang, limit:24, ...params }); },
   exercise(id){ return this.get(`/exerciseinfo/${id}/`); },
   categories(){ return this.get("/exercisecategory/", { limit:50 }); },
+  /* name search -> resolves a program exercise to a wger id */
+  async search(term){
+    try{ return await this.get("/exercise/search/", { term, language:"english", format:"json" }); }
+    catch(e){ return await this.get("/exercise/search/", { term, format:"json" }); }
+  },
   /* presentation helpers */
   name(ex){ const t=(ex.translations||[]).find(t=>t.language===this.lang)||(ex.translations||[]).find(t=>t.language===2)||(ex.translations||[])[0]; return t?t.name:("Exercise #"+ex.id); },
   desc(ex){ const t=(ex.translations||[]).find(t=>t.language===this.lang)||(ex.translations||[])[0]; return t?(t.description||""):""; },
@@ -805,14 +810,15 @@ function renderTrain(){
       <h2 style="margin:12px 0 2px;font-size:23px">${d.icon} ${d.title}</h2>
       <div class="h-sub">${d.sub}</div>
     </div>
-    ${d.run?renderRunDay():d.ex.map((e,i)=>exerciseRow(e,i)).join('')}
+    ${d.run?renderRunDay():d.ex.map((e,i)=>exerciseRow(e,i,trainDay)).join('')}
     ${d.overload?`<div class="card pad mt" style="border-color:rgba(255,90,54,.25)"><div class="eyebrow" style="color:var(--ember-2)">📈 Progressive Overload</div>
       <p class="h-sub mt-s" style="font-size:13px">Beat last week by one of: +2.5kg, +1 rep per set, or −10s rest. Coach Felix tracks every logged set.</p></div>`:''}
     ${!d.run?`<button class="btn teal full mt" onclick="toast('Session started — log your sets as you go 💪')">Start ${d.title} session</button>`:''}
   </div>`;
+  if(!d.run) setTimeout(()=>{(d.ex||[]).forEach(e=>resolveWger(e.n).catch(()=>{}));},250);
 }
-function exerciseRow(e,i){
-  return `<div class="exrow" onclick="openExercise('${e.n.replace(/'/g,"\\'")}')">
+function exerciseRow(e,i,di){
+  return `<div class="exrow" onclick="openProgramExercise(${di},${i})">
     <div class="exnum">${i+1}</div>
     <div style="flex:1;min-width:0">
       <div style="font-weight:700;font-size:15px">${e.n}</div>
@@ -930,23 +936,56 @@ function wgerCard(e){
       <div><div style="font-weight:600">${WGER.name(e)}</div><div class="h-sub" style="font-size:12px">${mus}</div></div></div>
     <svg class="chev" viewBox="0 0 24 24" width="16" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 6 6 6-6 6"/></svg></div>`;
 }
-async function openWgerExercise(id){
+/* resolve a program exercise name -> wger id (cached) */
+WGER._resolved = {};
+const WGER_TERM = {
+  "Lateral Raises":"lateral raise","Tricep Pushdowns":"triceps pushdown",
+  "Overhead Tricep Extension":"triceps extension","Seated Cable Row":"seated row",
+  "Walking Lunges":"lunge","Hanging Leg Raises":"leg raise","Russian Twists":"russian twist",
+  "Cable Crunch":"crunch","Calf Raises":"calf raise","Push-Ups":"push up","Pull-Ups":"pull up",
+  "Face Pull":"face pull","Preacher Curl":"preacher curl","Chest Fly":"chest fly",
+  "Incline Dumbbell Press":"incline dumbbell press","Romanian Deadlift":"romanian deadlift",
+};
+async function resolveWger(name){
+  if(name in WGER._resolved) return WGER._resolved[name];
+  const term=(WGER_TERM[name]||name).toLowerCase();
+  try{
+    const r=await WGER.search(term);
+    const sug=(r&&r.suggestions)||[];
+    const pick=sug.find(s=>s.data&&(s.data.name||'').toLowerCase()===name.toLowerCase())
+            || sug.find(s=>(s.value||'').toLowerCase().includes(term))
+            || sug[0];
+    const id=pick&&pick.data?(pick.data.base_id||pick.data.id):null;
+    return (WGER._resolved[name]=id||null);
+  }catch(e){ return (WGER._resolved[name]=null); }
+}
+/* tap a program exercise -> live wger demo (keeps your sets/reps/rest), with fallback */
+async function openProgramExercise(di,ei){
+  const d=PROGRAM[di]; const e=d&&d.ex&&d.ex[ei]; if(!e)return;
+  const presc={name:e.n,sets:e.sets,reps:e.reps,rest:e.rest,cues:e.cues,mistakes:e.mistakes,m:e.m};
+  openSheetHTML(`<div class="h-sub" style="text-align:center;padding:46px">Finding live demo…</div>`);
+  let id=null; try{ id=await resolveWger(e.n); }catch(_){}
+  if(id) openWgerExercise(id,presc);
+  else openExercise(e.n); /* graceful fallback to the built-in detail */
+}
+async function openWgerExercise(id,presc){
   openSheetHTML(`<div class="h-sub" style="text-align:center;padding:46px">Loading…</div>`);
   let e=WGER._byId[id];
   try{ if(!e||!e.translations) { e=await WGER.exercise(id); WGER._byId[id]=e; } }
-  catch(err){ openSheetHTML(`<div class="card pad" style="text-align:center">Couldn't load this exercise.<button class="btn ghost full mt" onclick="closeSheet()">Close</button></div>`); return; }
+  catch(err){ if(presc){ openExercise(presc.name); return; } openSheetHTML(`<div class="card pad" style="text-align:center">Couldn't load this exercise.<button class="btn ghost full mt" onclick="closeSheet()">Close</button></div>`); return; }
+  const P=presc||{sets:3,reps:"8–12",rest:90};
   const nm=WGER.name(e), img=WGER.img(e), vid=WGER.vid(e);
   const prim=(e.muscles||[]).map(m=>m.name_en||m.name);
   const sec=(e.muscles_secondary||[]).map(m=>m.name_en||m.name);
   const equip=(e.equipment||[]).map(x=>x.name);
   const desc=(WGER.desc(e)||'').trim();
   const esc=nm.replace(/'/g,"\\'");
-  timer.dur=90;timer.t=90;timer.run=false;clearInterval(timer.iv);
-  const sets=Array.from({length:3},(_,i)=>`
+  timer.dur=P.rest;timer.t=P.rest;timer.run=false;clearInterval(timer.iv);
+  const sets=Array.from({length:P.sets},(_,i)=>`
     <div class="row" style="gap:8px;padding:9px 0;border-bottom:1px solid var(--hair)">
       <div class="exnum" style="width:28px;height:28px;font-size:12px">${i+1}</div>
       <input class="inp" style="padding:9px;text-align:center" placeholder="kg" inputmode="decimal">
-      <input class="inp" style="padding:9px;text-align:center" placeholder="reps" inputmode="numeric">
+      <input class="inp" style="padding:9px;text-align:center" placeholder="${P.reps} reps" inputmode="numeric">
       <button class="chip" onclick="this.classList.toggle('on');this.textContent=this.classList.contains('on')?'✓ Done':'Log';startTimer()">Log</button>
     </div>`).join('');
   const media = vid
@@ -956,12 +995,17 @@ async function openWgerExercise(id){
       : `<div class="vtile mb"><div class="vmesh"></div><a href="${yt(nm)}" target="_blank" rel="noopener" class="play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></a></div>`;
   openSheetHTML(`
     ${media}
-    <div class="row mt-s" style="gap:6px;flex-wrap:wrap"><span class="pill teal">wger</span>${e.category?`<span class="pill blue">${e.category.name}</span>`:''}${equip.slice(0,3).map(x=>`<span class="pill">${x}</span>`).join('')}</div>
+    <div class="row mt-s" style="gap:6px;flex-wrap:wrap"><span class="pill teal">● live · wger</span>${e.category?`<span class="pill blue">${e.category.name}</span>`:''}${equip.slice(0,3).map(x=>`<span class="pill">${x}</span>`).join('')}</div>
     <h2 style="font-size:22px;margin-top:10px">${nm}</h2>
+    ${presc?`<div class="row mt-s" style="gap:8px;flex-wrap:wrap"><span class="pill ember">${P.sets} sets</span><span class="pill teal">${P.reps} reps</span><span class="pill blue">${P.rest}s rest</span></div>`:''}
     <div class="card pad mt"><div class="eyebrow" style="color:var(--teal)">🎯 Muscles worked</div>
-      <div style="margin-top:7px;font-weight:600">Primary: <span style="font-weight:500">${prim.join(', ')||'—'}</span></div>
+      <div style="margin-top:7px;font-weight:600">Primary: <span style="font-weight:500">${prim.join(', ')||(P.m||'—')}</span></div>
       <div class="h-sub" style="margin-top:3px">Secondary: ${sec.join(', ')||'—'}</div></div>
     ${desc?`<div class="card pad mt"><div class="eyebrow">▸ Instructions</div><div class="wgerdesc" style="margin-top:8px;font-size:14px;line-height:1.55">${desc}</div></div>`:''}
+    ${P.cues&&P.cues.length?`<div class="eyebrow mt" style="margin:18px 0 10px;color:var(--teal)">🎙 Coach Felix cues</div>
+      ${P.cues.map((s,i)=>`<div class="row" style="gap:11px;margin-bottom:10px;align-items:flex-start"><div class="exnum" style="width:26px;height:26px;font-size:12px;color:var(--teal)">${i+1}</div><div style="flex:1;font-size:14px;line-height:1.45;padding-top:3px">${s}</div></div>`).join('')}`:''}
+    ${P.mistakes&&P.mistakes.length?`<div class="card pad mt" style="border-color:rgba(255,77,94,.25);background:rgba(255,77,94,.05)"><div class="eyebrow" style="color:var(--red)">⚠ Common mistakes</div>
+      ${P.mistakes.map(m=>`<div class="row mt-s" style="gap:8px;align-items:flex-start"><span style="color:var(--red)">•</span><span style="font-size:13.5px;line-height:1.4">${m}</span></div>`).join('')}</div>`:''}
     <div class="eyebrow mt" style="margin:18px 0 8px">📋 Log your sets</div>
     <div class="card pad">${sets}</div>
     <div class="card pad mt" id="timerCard" style="text-align:center;background:linear-gradient(135deg,rgba(77,141,255,.08),transparent)">
